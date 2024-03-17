@@ -152,7 +152,7 @@ def test_collector_describe():
 
 def test_collector_collect():
     aerotech = MagicMock()
-    aerotech.collect.return_value = [
+    aerotech.predict.side_effect = [
         {
             "data": {
                 "aerotech_horiz": -1000.0,
@@ -186,7 +186,6 @@ def test_collector_collect():
             "time": 1691957269.0734286,
         },
     ]
-    flyers = [aerotech, I0]
     motor = MagicMock()
     motor.read.return_value = OrderedDict(
         [
@@ -196,7 +195,7 @@ def test_collector_collect():
     )
 
     collector = FlyerCollector(
-        flyers, stream_name="primary", name="flyer_collector", extra_signals=[motor]
+        [I0], secondary_flyers=[aerotech], stream_name="primary", name="flyer_collector", extra_signals=[motor]
     )
     events = list(collector.collect())
     expected_events = [

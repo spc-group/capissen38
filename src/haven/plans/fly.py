@@ -1,5 +1,6 @@
 from collections import OrderedDict, abc
 from typing import Mapping, Sequence, Union
+from itertools import chain
 
 import numpy as np
 from bluesky import plan_patterns
@@ -28,7 +29,7 @@ def fly_line_scan(detectors: list, flyer, start, stop, num, extra_signals=()):
         yield from bps.complete(flyer_, wait=True)
     # Collect the data after flying
     collector = FlyerCollector(
-        flyers=flyers, name="flyer_collector", extra_signals=extra_signals
+        primary_flyers=flyers, name="flyer_collector", extra_signals=extra_signals
     )
     yield from bps.collect(collector)
 
@@ -246,13 +247,51 @@ class Snaker:
 
 
 class FlyerCollector(FlyerInterface, Device):
+    """A faux device for collecting data from other flyers.
+
+    Useful for combining individual flyer streams into a single unified stream.
+
+    Imagine a fly scan where a motor moves contuously over a region
+    while triggering one or more detectors. Each flyer will generate a
+    data stream independent of the others, but it may be desirable to
+    have a single "primary" data stream with the output of each
+    detector along with the corresponding motor position.
+
+    This flyer creates a data stream named as the value of
+    *stream_name*, where the values in *primary_flyers*
+    (e.g. detectors) are included together, and the values for
+    *secondary_flyers* (e.g. motor) are predicted based on timestamps
+    read from *primary_flyers*.
+
+    Expects each device in *secondary_flyers* to have a method
+    ``predict(self, timestamp: float)`` that accepts the timestamp for
+    the measurement and returns a datum dictionary, similar to those
+    yielded by :py:meth:`ophyd.FlyerInterface.collect`.
+
+    Parameters
+    ==========
+    primary_flyers
+      The flyer devices that determine the structure of the new data
+      stream.
+    secondary_flyers
+      The flyer devices that will be interpolated to match those in
+      *primary_flyers* in the new data stream.
+    stream_name
+      What to call the newly created data stream.
+    extra_signals
+      Signals whose *read* method will be added to the new data stream.
+    
+    """
+
+    
     stream_name: str
     flyers: list
 
     def __init__(
-        self, flyers, stream_name: str = "primary", extra_signals=(), *args, **kwargs
+        self, primary_flyers: Sequence, secondary_flyers: Sequence = [], stream_name: str = "primary", extra_signals: Sequence = (), *args, **kwargs
     ):
-        self.flyers = flyers
+        self.primary_flyers = primary_flyers
+        self.secondary_flyers = secondary_flyers
         self.stream_name = stream_name
         self.extra_signals = extra_signals
         super().__init__(*args, **kwargs)
@@ -264,7 +303,7 @@ class FlyerCollector(FlyerInterface, Device):
         return StatusBase(success=True)
 
     def collect(self):
-        collections = [iter(flyer.collect()) for flyer in self.flyers]
+        collections = [iter(flyer.collect()) for flyer in self.primary_flyers]
         while True:
             event = {
                 "data": {},
@@ -281,6 +320,16 @@ class FlyerCollector(FlyerInterface, Device):
             timestamps = []
             for ts in event["timestamps"].values():
                 timestamps.extend(np.asarray(ts).flatten())
+            # Predict the position of the secondary flyers based on timestamp
+            curr_timestamp = np.median(timestamps)
+            for flyer in self.secondary_flyers:
+                datum = flyer.predict(curr_timestamp)
+                event["data"].update(datum["data"])
+                event["timestamps"].update(datum["timestamps"])
+                ts = list(datum["timestamps"].values())
+                timestamps.extend(np.asarray(ts).flatten())
+            # Determine the event time based on average timestamp
+            print(timestamps)
             event["time"] = np.median(timestamps)
             # Add extra non-flying signals (not inc. in event time)
             for signal in self.extra_signals:
@@ -291,7 +340,7 @@ class FlyerCollector(FlyerInterface, Device):
 
     def describe_collect(self):
         desc = OrderedDict()
-        for flyer in self.flyers:
+        for flyer in chain(self.primary_flyers, self.secondary_flyers):
             for stream, this_desc in flyer.describe_collect().items():
                 desc.update(this_desc)
         # Add extra signals, e.g. slow motor during a grid fly scan
