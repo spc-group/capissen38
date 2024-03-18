@@ -274,62 +274,37 @@ def test_complete(aerotech_flyer):
     assert status.done
 
 
-def test_collect(aerotech_flyer):
+def test_predict(aerotech_flyer):
     flyer = aerotech_flyer
-    # Set up needed parameters
-    flyer.pixel_positions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    flyer.starttime = 0
-    flyer.endtime = flyer.starttime + 11.25
-    motor_accel = flyer.acceleration.set(0.5).wait()  # µm/s^2
-    flyer.step_size.set(0.1).wait()  # µm
-    flyer.dwell_time.set(1).wait()  # sec
-    expected_timestamps = [
-        1.125,
-        2.125,
-        3.125,
-        4.125,
-        5.125,
-        6.125,
-        7.125,
-        8.125,
-        9.125,
-        10.125,
-    ]
-    payload = list(flyer.collect())
-    # Confirm data have the right structure
-    for datum, value, timestamp in zip(
-        payload, flyer.pixel_positions, expected_timestamps
-    ):
-        assert datum == {
-            "data": {
-                "aerotech_horiz": value,
-                "aerotech_horiz_user_setpoint": value,
-            },
-            "timestamps": {
-                "aerotech_horiz": timestamp,
-                "aerotech_horiz_user_setpoint": timestamp,
-            },
-            "time": timestamp,
+    # Create some fake fly scan data
+    flyer._collected_data = {
+        "user_readback": {
+            "timestamps": [0, 1, 2, 3, 4, 5, 6],
+            "values": [0., 100., 200., 300., 400., 500., 600.],
         }
+    }
+    # Set up needed parameters
+    timestamp = 1.5
+    prediction = flyer.predict(timestamp)
+    assert prediction == {
+        "time": 1.5,
+        "timestamps": {
+            "aerotech_horiz": 1.5,
+        },
+        "data": {
+            "aerotech_horiz": 150.,
+        }
+    }
 
 
 def test_describe_collect(aerotech_flyer):
     expected = {
-        "positions": OrderedDict(
+        "aerotech_horiz": OrderedDict(
             [
                 (
                     "aerotech_horiz",
                     {
                         "source": "SIM:aerotech_horiz",
-                        "dtype": "integer",
-                        "shape": [],
-                        "precision": 3,
-                    },
-                ),
-                (
-                    "aerotech_horiz_user_setpoint",
-                    {
-                        "source": "SIM:aerotech_horiz_user_setpoint",
                         "dtype": "integer",
                         "shape": [],
                         "precision": 3,

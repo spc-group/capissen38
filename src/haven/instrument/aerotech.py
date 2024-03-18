@@ -4,8 +4,9 @@ import math
 import threading
 import time
 from collections import OrderedDict
-from typing import Dict, Generator
+from typing import Dict, Generator, Sequence
 
+from scipy.interpolate import CubicSpline
 import numpy as np
 import pint
 from apstools.synApps.asyn import AsynRecord
@@ -26,7 +27,7 @@ log = logging.getLogger(__name__)
 ureg = pint.UnitRegistry()
 
 
-class AerotechFlyer(EpicsMotor, flyers.FlyerInterface):
+class AerotechFlyer(EpicsMotor, flyers.MonitorFlyerMixin):
     """Allow an Aerotech stage to fly-scan via the Ophyd FlyerInterface.
 
     Set *start_position*, *end_position*, and *step_size* in units of
@@ -62,6 +63,12 @@ class AerotechFlyer(EpicsMotor, flyers.FlyerInterface):
     encoder
       The number of the encoder to track when fly-scanning with this
       device.
+    pivot
+      How to report the collected fly-scan data. See
+      ``ophyd.flyers.MonitorFlyerMixin``.
+    monitor_attrs
+      Which components to save during fly scans. See
+      ``ophyd.flyers.MonitorFlyerMixin``.
 
     Components
     ==========
@@ -135,8 +142,10 @@ class AerotechFlyer(EpicsMotor, flyers.FlyerInterface):
     flying_complete = Cpt(Signal, kind=Kind.omitted)
     ready_to_fly = Cpt(Signal, kind=Kind.omitted)
 
-    def __init__(self, *args, axis: str, encoder: int, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, axis: str, encoder: int, pivot: bool = True, monitor_attrs: Sequence = ["user_readback"], **kwargs):
+        # Default monitor flyer mixin attributes
+        super().__init__(*args, pivot=pivot, monitor_attrs=monitor_attrs, **kwargs)
+        # Save some attrs for later
         self.axis = axis
         self.encoder = encoder
         # Set up auto-calculations for the flyer
@@ -191,7 +200,8 @@ class AerotechFlyer(EpicsMotor, flyers.FlyerInterface):
         complete_status : StatusBase
             Indicate when flying has completed
         """
-
+        # Subscriptions for monitors are set up in kickoff, not complete
+        super().kickoff()
         # Prepare a callback to check when the motor has stopped moving
         def check_flying(*args, old_value, value, **kwargs) -> bool:
             "Check if flying is complete."
@@ -206,51 +216,23 @@ class AerotechFlyer(EpicsMotor, flyers.FlyerInterface):
         self._fly_thread = th  # Prevents garbage collection
         return status
 
-    def collect(self) -> Generator[Dict, None, None]:
-        """Retrieve data from the flyer as proto-events
-        Yields
-        ------
-        event_data : dict
-            Must have the keys {'time', 'timestamps', 'data'}.
-
-        """
-        # np array of pixel location
-        pixels = self.pixel_positions
-        # time of scans start taken at Kickoff
-        starttime = self.starttime
-        # time of scans at movement stop
-        endtime = self.endtime
-        # grab necessary for calculation
-        accel_time = self.acceleration.get()
-        dwell_time = self.dwell_time.get()
-        step_size = self.step_size.get()
-        slew_speed = step_size / dwell_time
-        motor_accel = slew_speed / accel_time
-        # Calculate the time it takes for taxi to reach first pixel
-        extrataxi = ((0.5 * ((slew_speed**2) / (2 * motor_accel))) / slew_speed) + (
-            dwell_time / 2
-        )
-        taxi_time = accel_time + extrataxi
-        # Create np array of times for each pixel in seconds since epoch
-        startpixeltime = starttime + taxi_time
-        endpixeltime = endtime - taxi_time
-        scan_time = endpixeltime - startpixeltime
-        timestamps1 = np.linspace(
-            startpixeltime, startpixeltime + scan_time, num=len(pixels)
-        )
-        timestamps = [round(ts, 8) for ts in timestamps1]
-        for value, ts in zip(pixels, timestamps):
-            yield {
-                "data": {self.name: value, self.user_setpoint.name: value},
-                "timestamps": {self.name: ts, self.user_setpoint.name: ts},
-                "time": ts,
-            }
-
-    def describe_collect(self):
-        """Describe details for the collect() method"""
-        desc = OrderedDict()
-        desc.update(self.describe())
-        return {"positions": desc}
+    def predict(self, timestamp):
+        """Estimate the event at *timestamp* based on monitor fly data."""
+        # Organize the collected fly-scan data
+        # Interpolate to find the best value
+        # Build the datum to include in another data stream
+        datum = {
+            "time": timestamp,
+            "data": {},
+            "timestamps": {},
+        }
+        for attr, data in self._collected_data.items():
+            name = getattr(self, attr).name
+            datum["timestamps"][name] = timestamp
+            # Predict the new intermediate value by interpolation
+            spline = CubicSpline(data["timestamps"], data["values"])
+            datum["data"][name] = spline(timestamp)
+        return datum
 
     def fly(self):
         # Start the trajectory
@@ -262,6 +244,10 @@ class AerotechFlyer(EpicsMotor, flyers.FlyerInterface):
         self.flying_complete.set(True).wait()
         # Record end time of flight
         self.endtime = time.time()
+        # Clean up the fly-scan monitoring
+        self._acquiring = False
+        self._paused = False
+        self._clear_monitors()
 
     def taxi(self):
         # import pdb; pdb.set_trace()

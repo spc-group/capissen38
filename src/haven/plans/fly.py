@@ -29,9 +29,10 @@ def fly_line_scan(detectors: list, flyer, start, stop, num, extra_signals=()):
         yield from bps.complete(flyer_, wait=True)
     # Collect the data after flying
     collector = FlyerCollector(
-        primary_flyers=flyers, name="flyer_collector", extra_signals=extra_signals
+        primary_flyers=detectors, secondary_flyers=[flyer], name="flyer_collector", extra_signals=extra_signals
     )
     yield from bps.collect(collector)
+    yield from bps.collect(flyer)
 
 
 # @baseline_decorator()
@@ -329,7 +330,6 @@ class FlyerCollector(FlyerInterface, Device):
                 ts = list(datum["timestamps"].values())
                 timestamps.extend(np.asarray(ts).flatten())
             # Determine the event time based on average timestamp
-            print(timestamps)
             event["time"] = np.median(timestamps)
             # Add extra non-flying signals (not inc. in event time)
             for signal in self.extra_signals:
