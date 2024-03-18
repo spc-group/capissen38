@@ -267,7 +267,7 @@ class AerotechFlyer(EpicsMotor, flyers.MonitorFlyerMixin):
         # Set timing on the delay for triggering detectors, etc
         self.parent.delay.channel_C.delay.put(0)
         self.parent.delay.output_CD.polarity.put(self.parent.delay.polarities.NEGATIVE)
-        # Count-down timer
+        # Count-down timer for testing
         # for i in range(10, 0, -1):
         #     print(f"{i}...", end="", flush=True)
         #     time.sleep(1)
@@ -284,7 +284,8 @@ class AerotechFlyer(EpicsMotor, flyers.MonitorFlyerMixin):
         super().stage(*args, **kwargs)
 
     def unstage(self, *args, **kwargs):
-        self.velocity.set(self.old_velocity).wait()
+        if getattr(self, "old_velocity", None) is not None:
+            self.velocity.set(self.old_velocity).wait()
         return super().unstage(*args, **kwargs)
 
     def move(self, position, wait=True, *args, **kwargs):
