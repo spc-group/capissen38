@@ -12,6 +12,10 @@ log = logging.getLogger(__name__)
 def load_shutter_coros(config=None):
     if config is None:
         config = load_config()
+    # Guard to make sure there's at least one shutter configuration
+    if "shutter" not in config.keys():
+        return
+    # Load the shutter configurations into devices
     prefix = config["shutter"]["prefix"]
     for name, d in config["shutter"].items():
         if name == "prefix":

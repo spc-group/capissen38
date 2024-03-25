@@ -130,7 +130,6 @@ async def make_energy_device(
         msg = f"Could not connect to energy positioner: {name}"
         log.warning(msg)
     else:
-        registry.register(dev)
         return dev
 
 
@@ -138,6 +137,10 @@ def load_energy_positioner_coros(config=None):
     # Load PV's from config
     if config is None:
         config = load_config()
+    # Guard to make sure we have a mono and ID configuration
+    if "monochromator" not in config.keys() or "undulator" not in config.keys():
+        return
+    # Make the combined energy device
     yield make_energy_device(
         name="energy",
         mono_suffix=Monochromator.energy.suffix,

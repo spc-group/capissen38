@@ -180,7 +180,6 @@ class LERIXSpectrometer(Device):
 #         log.warning(f"Could not connect to LERIX spectrometer: {name} ({pvs})")
 #     else:
 #         log.info(f"Created area detector: {name} ({pvs})")
-#         registry.register(dev)
 #         return dev
 
 

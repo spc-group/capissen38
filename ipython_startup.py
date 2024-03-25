@@ -1,3 +1,5 @@
+import time
+import logging
 import databroker  # noqa: F401
 import matplotlib.pyplot as plt  # noqa: F401
 from bluesky import RunEngine  # noqa: F401
@@ -9,18 +11,19 @@ from bluesky.simulators import summarize_plan  # noqa: F401
 
 import haven  # noqa: F401
 
+logging.basicConfig(level=logging.WARNING)
+
+# Allow best effort callback to update properly
+plt.ion()
+
 # Prepare the haven instrument
 config = haven.load_config()
-print(f"Initializing {config['beamline']['name']}...", end="", flush=True)
+t0 = time.monotonic()
+print(f"Initializing {config['beamline']['name']}…")
 haven.load_instrument()
-print("done")
+print(f"Finished initalization in {time.monotonic() - t0:.2f} seconds.")
 RE = haven.run_engine()
 ion_chambers = haven.registry.findall("ion_chambers")
-
-# Set up best effort callback for visualizing live data
-plt.ion()
-bec = BestEffortCallback()
-RE.subscribe(bec)
 
 # Add metadata to the run engine
 RE.preprocessors.append(haven.preprocessors.inject_haven_md_wrapper)

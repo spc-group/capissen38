@@ -52,7 +52,6 @@ async def make_power_supply_device(prefix, name, ch_num):
         log.warning(msg)
     else:
         log.info(f"Created power supply: {name}")
-        registry.register(dev)
         return dev
 
 

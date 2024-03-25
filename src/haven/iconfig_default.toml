@@ -9,106 +9,9 @@ is_connected = false
 name = "Advanced Photon Source"
 xray_source = "insertion device"
 
-####################################################################
-# Configuration for interacting with the beamline scheduling system
-# using apsbss package
-####################################################################
-
-[bss]
-
-prefix = "255idc:bss"
-beamline = "255-ID-C"
-
-[xray_source]
-
-type = "undulator"
-prefix = "ID255:"
-
-[queueserver]
-kafka_topic = "s255idc_queueserver"
-control_host = "localhost"
-control_port = "60615"
-info_host = "localhost"
-info_port = "60625"
-
 [database.databroker]
 
 catalog = "bluesky"
-
-[database.tiled]
-
-uri = "http://fedorov.xray.aps.anl.gov:8001/"
-# uri = "http://hood.xray.aps.anl.gov:8001/"
-entry_node = "25idc_microprobe"
-
-[shutter]
-prefix = "PSS:99ID"
-
-[shutter.front_end_shutter]
-
-hutch = "A"
-# open_pv = "PSS:99ID:FES_OPEN_EPICS.VAL"
-# close_pv = "PSS:99ID:FES_CLOSE_EPICS.VAL"
-# status_pv = "PSS:99ID:A_BEAM_PRESENT"
-
-[shutter.hutch_shutter]
-
-hutch = "C"
-# open_pv = "PSS:99ID:SCS_OPEN_EPICS.VAL"
-# close_pv = "PSS:99ID:SCS_CLOSE_EPICS.VAL"
-# status_pv = "PSS:25ID:C_BEAM_PRESENT"
-
-[undulator]
-
-ioc = "id_ioc"
-
-[monochromator]
-
-ioc = "mono_ioc"
-ioc_branch = "UP"  # For caQtDM macros
-
-[ion_chamber]
-
-[ion_chamber.scaler]
-prefix = "scaler_ioc"
-channels = [2]
-
-[ion_chamber.preamp]
-prefix = "preamp_ioc"
-
-[ion_chamber.voltmeter]
-prefix = "255idc:LabjackT7_"  # Don't include the labjack number
-
-[fluorescence_detector]
-
-[dxp.vortex_me4]
-
-prefix = "vortex_me4"
-num_elements = 4
-
-[dxp.canberra_Ge7]
-
-prefix = "20xmap8"
-num_elements = 4
-
-[xspress.vortex_me4_xsp]
-
-prefix = "vortex_me4_xsp"
-num_elements = 4
-
-# Motors
-# ======
-# 
-# Add a new section for each IOC (or IOC prefix) that has motors
-# matching the format {prefix}:m1. The heading of the subsection
-# ("VME_crate" in the example below) is a human-readable name that
-# will become a label on the Ophyd Device. *num_motors* determines how
-# many motors will be read. The example below will load three motors
-# with PVs: "vme_crate_ioc:m1", "vme_crate_ioc:m2", and
-# "vme_crate_ioc:m3".
-[motor.VME_crate]
-prefix = "255idVME"
-num_motors = 3
 
 # Cameras
 # =======
@@ -116,10 +19,3 @@ num_motors = 3
 [camera]
 
 imagej_command = "imagej"
-
-# [camera.sim_det]
-
-# prefix = "25idSimDet"
-# name = "sim_det"
-# description = "Simulated Camera"
-# device_class = "SimDetector"

@@ -106,9 +106,10 @@ async def load_motor(prefix: str, motor_num: int, ioc_name: str = None):
         log.debug(f"Resolved motor {pv} to '{name}'")
 
     # Create the motor device
-    if name == f"motor {motor_num+1}":
+    unused_motor_names = [f"motor {motor_num+1}", ""]
+    if name in unused_motor_names:
         # It's an unnamed motor, so skip it
-        log.info(f"SKipping unnamed motor {motor_num}")
+        log.info(f"SKipping unnamed motor {pv}")
     else:
         # Create a new motor object
         labels = {"motors", "extra_motors", "baseline"}

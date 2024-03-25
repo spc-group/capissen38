@@ -14,7 +14,6 @@ __all__ = ["XYStage", "load_stages"]
 log = logging.getLogger(__name__)
 
 
-@registry.register
 class XYStage(Device):
     """An XY stage with two motors operating in orthogonal directions.
 
