@@ -57,8 +57,10 @@ class InvalidPV(ValueError):
 
 
 class DocumentNotFound(RuntimeError):
-    """An attempt was made to retrieve a document from the mongodb database,
-    but the requested document was not available."""
+    """An attempt was made to use a document, but the requested document
+    was not available.
+
+    """
 
     ...
 

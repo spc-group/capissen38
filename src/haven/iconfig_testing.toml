@@ -8,6 +8,14 @@ beamline = "255-ID-C"
 type = "undulator"
 prefix = "ID255:"
 
+#####################
+# Queueserver
+#####################
+
+# This section describes how to connect to the queueserver. It does
+# not generate any devices, but is intended to be read by the Firefly
+# GUI application to determine how to interact with the queue.
+
 [queueserver]
 kafka_topic = "s255idc_queueserver"
 control_host = "localhost"
@@ -46,18 +54,32 @@ ioc = "id_ioc"
 ioc = "mono_ioc"
 ioc_branch = "UP"  # For caQtDM macros
 
+######################
+# Ion chambers
+######################
+# 
+# Ion chambers are bundled into groups that reflect different
+# configurations
+#
+# One group is best thought of as a set of ion chambers that all use
+# the same:
+#
+# - scaler
+# - preamp IOC
+# - labjack/voltmeter IOC
 
-[ion_chamber]
-
-[ion_chamber.scaler]
-prefix = "scaler_ioc"
-channels = [2]
-
-[ion_chamber.preamp]
-prefix = "preamp_ioc"
-
-[ion_chamber.voltmeter]
-prefix = "255idc:LabjackT7_"  # Don't include the labjack number
+[ion_chamber.vme_scaler]
+# Produces PVs e.g. 255idcVME:3820:scaler1.S2
+scaler_prefix = "255idcVME:3820:"
+scaler_channels = [2]
+# Produces PVs e.g. 255idc:SR03:sens_num.VAL
+preamp_prefix = "255idc:SR"
+preamp_channels = [3]
+# Produces PVs e.g. 25idc:LJT7Voltmeter_0:Ai1
+voltmeter_prefix = "255idc:LabjackT7_0:"
+voltmeter_channels = [1]
+# From V2F100: Fmax / Vmax
+counts_per_volt_second = 10e6
 
 # Motors
 # ======
@@ -71,7 +93,7 @@ prefix = "255idc:LabjackT7_"  # Don't include the labjack number
 # "vme_crate_ioc:m3".
 
 [motor.VME_crate]
-prefix = "255idVME"
+prefix = "255idVME:"
 num_motors = 3
 
 # Keys for camera definitions must begin with "cam" (e.g. "camA", "camB")
@@ -87,6 +109,12 @@ prefix = "255idc"
 delay_prefix = "255idc:DG645"
 pv_vert = ":m1"
 pv_horiz = ":m2"
+
+[stage.sample_stage]
+
+prefix = "255idcVME:"
+pv_vert = "m13"
+pv_horiz = "m14"
 
 [power_supply.NHQ01]
 
@@ -174,9 +202,15 @@ device_class = "CapillaryHeater"
 prefix = "255idAustin"
 
 # Managed IOC control PVs
-[iocs]
-255idb = "glados:ioc255idb"
-255idc = "glados:ioc255idc"
+[beamline_manager]
+
+name = "GLaDOS"
+prefix = "255idc:glados:"
+beamline = "25-ID-C"
+
+[beamline_manager.iocs]
+ioc255idb = "ioc255idb:"
+ioc255idc = "ioc255idc:"
 
 [fluorescence_detector]
 
@@ -194,3 +228,12 @@ num_elements = 4
 
 prefix = "vortex_me4_xsp"
 num_elements = 4
+
+[pfcu4.filter_bank0]
+
+prefix = "255idc:pfcu0:"
+
+[pfcu4.filter_bank1]
+
+prefix = "255idc:pfcu1:"
+shutters = [[3, 4]]

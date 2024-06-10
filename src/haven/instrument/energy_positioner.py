@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from ophyd import Component as Cpt
@@ -9,8 +8,7 @@ from ophyd.ophydobj import OphydObject
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
 from .._iconfig import load_config
-from .device import aload_devices, await_for_connection
-from .instrument_registry import registry
+from .device import make_device
 from .monochromator import IDTracking, Monochromator
 
 log = logging.getLogger(__name__)
@@ -114,45 +112,28 @@ class EnergyPositioner(PseudoPositioner):
         )
 
 
-async def make_energy_device(
-    name, mono_prefix, mono_suffix, id_prefix, id_offset_suffix, id_tracking_suffix
-):
-    dev = EnergyPositioner(
-        name=name,
-        mono_pv=f"{mono_prefix}{mono_suffix}",
-        id_offset_pv=f"{mono_prefix}{id_offset_suffix}",
-        id_tracking_pv=f"{mono_prefix}{id_tracking_suffix}",
-        id_prefix=id_prefix,
-    )
-    try:
-        await await_for_connection(dev)
-    except TimeoutError as exc:
-        msg = f"Could not connect to energy positioner: {name}"
-        log.warning(msg)
-    else:
-        return dev
-
-
-def load_energy_positioner_coros(config=None):
+def load_energy_positioner(config=None):
     # Load PV's from config
     if config is None:
         config = load_config()
     # Guard to make sure we have a mono and ID configuration
     if "monochromator" not in config.keys() or "undulator" not in config.keys():
         return
+    # Extract PVs from config
+    mono_prefix = config["monochromator"]["ioc"]
+    id_prefix = config["undulator"]["ioc"]
+    mono_suffix = Monochromator.energy.suffix
+    id_offset_suffix = Monochromator.id_offset.suffix
+    id_tracking_suffix = Monochromator.id_tracking.suffix
     # Make the combined energy device
-    yield make_energy_device(
+    return make_device(
+        EnergyPositioner,
         name="energy",
-        mono_suffix=Monochromator.energy.suffix,
-        id_offset_suffix=Monochromator.id_offset.suffix,
-        id_tracking_suffix=Monochromator.id_tracking.suffix,
-        mono_prefix=config["monochromator"]["ioc"],
-        id_prefix=config["undulator"]["ioc"],
+        mono_pv=f"{mono_prefix}{mono_suffix}",
+        id_offset_pv=f"{mono_prefix}{id_offset_suffix}",
+        id_tracking_pv=f"{mono_prefix}{id_tracking_suffix}",
+        id_prefix=id_prefix,
     )
-
-
-def load_energy_positioner(config=None):
-    asyncio.run(aload_devices(*load_energy_positioner_coros(config=config)))
 
 
 # -----------------------------------------------------------------------------

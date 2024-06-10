@@ -26,7 +26,7 @@ __all__ = [
 class MotorAxis(BaseModel):
     name: str
     readback: float
-    offset: float = None
+    offset: Optional[float] = None
 
     def as_dict(self):
         return {"name": self.name, "readback": self.readback, "offset": self.offset}

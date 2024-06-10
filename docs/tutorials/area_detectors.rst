@@ -109,13 +109,10 @@ First, we will verify that the detector is going to measure the correct signals 
 
 Next, we will prepare the plan. By default, the
 :py:func:`~haven.plans.xafs_scan.xafs_scan` plan will only measure the
-ion chambers. To also trigger the area detector, we must include it
-both as a detector and as a time positioner (for setting exposure
-time).
+ion chambers. To also trigger the area detector, we must include it as
+a detector.
 
 .. code-block:: ipython
-
-   In [7]: time_positioners = [eiger.cam.acquire_time, ion_chambers[0].exposure_time]
 
    In [8]: detectors = [eiger, *ion_chambers]
 
@@ -139,7 +136,7 @@ Now we will **create an XAFS scan plan** with the following energies relative to
 
 .. code-block:: ipython
 
-   In [9]: plan = haven.xafs_scan(-200, 10, 1, -30, 1, 1, 30, k_step=0.05, k_max=14, k_exposure=1, k_weight=0.5, E0="Ni_K", time_positioners=time_positioners, detectors=detectors)
+   In [9]: plan = haven.xafs_scan(-200, 10, 1, -30, 1, 1, 30, k_step=0.05, k_max=14, k_exposure=1, k_weight=0.5, E0="Ni_K", detectors=detectors)
 
 Next we will summarize the plan to ensure that it is performing the steps we expect:
 
@@ -155,6 +152,6 @@ the sample and the reason we're measuring it:
 
 .. code-block:: ipython
 
-   In[12]: plan = haven.xafs_scan(-200, 10, 1, -30, 1, 1, 30, k_step=0.05, k_max=14, k_exposure=1, k_weight=0.5, E0="Ni_K", time_positioners=time_positioners, detectors=detectors)
+   In[12]: plan = haven.xafs_scan(-200, 10, 1, -30, 1, 1, 30, k_step=0.05, k_max=14, k_exposure=1, k_weight=0.5, E0="Ni_K", detectors=detectors)
 
    In[13]: RE(plan, sample_name="Ni test sample", purpose="training")

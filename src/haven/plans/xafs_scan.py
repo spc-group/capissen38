@@ -9,7 +9,7 @@ from collections import ChainMap
 from typing import Mapping, Optional, Sequence, Union
 
 from .. import exceptions
-from ..energy_ranges import ERange, KRange, merge_ranges
+from ..energy_ranges import ERange, KRange, energy_to_wavenumber, merge_ranges
 from ..preprocessors import baseline_decorator
 from ..typing import DetectorList
 from .energy_scan import energy_scan
@@ -40,8 +40,8 @@ def xafs_scan(
     k_weight: float = 0.0,
     E0: Union[float, str] = 0,
     detectors: DetectorList = "ion_chambers",
-    energy_positioners: Sequence = ["energy"],
-    time_positioners: Sequence = ["I0_exposure_time"],
+    energy_signals: Sequence = ["energy"],
+    time_signals: Sequence = None,
     md: Mapping = {},
 ):
     """Collect a spectrum by scanning X-ray energies relative to an
@@ -85,8 +85,15 @@ def xafs_scan(
     energies. *k_weights* will apply longer exposure times to higher K
     values.
 
-    *detectors*, *energy_positioners*, and *time_positioners* are
-     mostly useful for debugging.
+    The calculated exposure times will be set for every signal in
+    *time_signals*. If *time_signals* is ``None``, then
+    *time_signals* will be determined automatically from
+    *detectors*: for each detector, if it has an attribute/property
+    *default_time_signal*, then this signal will be included in
+    *time_signals*.
+
+    *energy_signals*, and *time_signals* are mostly useful for
+    debugging.
 
     Parameters
     ==========
@@ -111,10 +118,10 @@ def xafs_scan(
     detectors
       Overrides the list of Ophyd signals to record during this
       scan. Useful for testing.
-    energy_positioners
+    energy_signals
       Overrides the list of Ophyd positioners used to set energy
       during this scan. Useful for testing.
-    time_positioners
+    time_signals
       Overrides the list of Ophyd positioners used to set exposure
       time during this scan. Useful for testing.
 
@@ -135,7 +142,7 @@ def xafs_scan(
     if has_krange:
         energy_ranges.append(
             KRange(
-                E_min=curr_E_min,
+                k_min=energy_to_wavenumber(curr_E_min),
                 k_max=k_max,
                 k_step=k_step,
                 k_weight=k_weight,
@@ -152,8 +159,8 @@ def xafs_scan(
         exposure=exposures,
         E0=E0,
         detectors=detectors,
-        energy_positioners=energy_positioners,
-        time_positioners=time_positioners,
+        energy_signals=energy_signals,
+        time_signals=time_signals,
         md=ChainMap(md, {"plan_name": "xafs_scan"}),
     )
 

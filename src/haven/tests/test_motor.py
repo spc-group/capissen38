@@ -1,26 +1,37 @@
+import pytest
+
 from haven.instrument import motor
 
 
-def test_load_vme_motors(sim_registry, mocker):
+@pytest.fixture()
+def mocked_device_names(mocker):
     # Mock the caget calls used to get the motor name
-    mocked_caget = mocker.patch.object(motor, "caget")
-    mocked_caget.side_effect = ["SLT V Upper", "SLT V Lower", "SLT H Inbound"]
+    async def resolve_device_names(defns):
+        for defn, name in zip(defns, ["SLT V Upper", "SLT V Lower", "SLT H Inbound"]):
+            defn["name"] = name
+
+    mocker.patch(
+        "haven.instrument.motor.resolve_device_names", new=resolve_device_names
+    )
+
+
+def test_load_vme_motors(sim_registry, mocked_device_names):
     # Load the Ophyd motor definitions
-    motor.load_all_motors()
+    motor.load_motors()
     # Were the motors imported correctly
     motors = list(sim_registry.findall(label="motors"))
     assert len(motors) == 3
     # assert type(motors[0]) is motor.HavenMotor
     motor_names = [m.name for m in motors]
-    assert "SLT V Upper" in motor_names
-    assert "SLT V Lower" in motor_names
-    assert "SLT H Inbound" in motor_names
+    assert "SLT_V_Upper" in motor_names
+    assert "SLT_V_Lower" in motor_names
+    assert "SLT_H_Inbound" in motor_names
     # Check that the IOC name is set in labels
-    motor1 = sim_registry.find(name="SLT V Upper")
+    motor1 = sim_registry.find(name="SLT_V_Upper")
     assert "VME_crate" in motor1._ophyd_labels_
 
 
-def test_skip_existing_motors(sim_registry, mocker):
+def test_skip_existing_motors(sim_registry, mocked_device_names):
     """If a motor already exists from another device, don't add it to the
     motors group.
 
@@ -29,22 +40,18 @@ def test_skip_existing_motors(sim_registry, mocker):
     m1 = motor.HavenMotor(
         "255idVME:m1", name="kb_mirrors_horiz_upstream", labels={"motors"}
     )
-    sim_registry.register(m1)
-    # Mock the caget calls used to get the motor name
-    mocked_caget = mocker.patch.object(motor, "caget")
-    mocked_caget.side_effect = ["SLT V Upper", "SLT V Lower", "SLT H Inbound"]
     # Load the Ophyd motor definitions
-    motor.load_all_motors()
+    motor.load_motors()
     # Were the motors imported correctly
     motors = list(sim_registry.findall(label="motors"))
+    print([m.prefix for m in motors])
     assert len(motors) == 3
-    # assert type(motors[0]) is motor.HavenMotor
     motor_names = [m.name for m in motors]
     assert "kb_mirrors_horiz_upstream" in motor_names
-    assert "SLT V Upper" in motor_names
-    assert "SLT V Lower" in motor_names
+    assert "SLT_V_Upper" in motor_names
+    assert "SLT_V_Lower" in motor_names
     # Check that the IOC name is set in labels
-    motor1 = sim_registry.find(name="SLT V Upper")
+    motor1 = sim_registry.find(name="SLT_V_Upper")
     assert "VME_crate" in motor1._ophyd_labels_
 
 

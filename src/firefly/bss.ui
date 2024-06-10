@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>717</width>
-    <height>524</height>
+    <width>1295</width>
+    <height>627</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,429 +19,805 @@
   <property name="windowTitle">
    <string>Beamline Scheduling System (BSS)</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
-    <widget class="QGroupBox" name="proposal_group_box">
-     <property name="title">
-      <string>Proposal</string>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QTableView" name="proposal_view">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>400</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="update_proposal_button">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Update</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QFormLayout" name="proposal_form_layout">
-        <property name="labelAlignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Proposal ID:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="PyDMLabel" name="proposal_id_label">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <widget class="QPushButton" name="refresh_models_button">
+         <property name="toolTip">
+          <string>Reload the list of proposals and ESAFs based on the current beamline and cycle values.</string>
+         </property>
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_24">
+         <property name="text">
+          <string>Beamline:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_12">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>haven://beamline_manager.bss.proposal.beamline_name</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>Cycle:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_13">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>haven://beamline_manager.bss.esaf.aps_cycle</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="proposal_group_box">
+       <property name="title">
+        <string>Proposal</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QTableView" name="proposal_view">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="update_proposal_button">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="toolTip">
-           <string/>
+           <string>Set the current proposal data based on the currently selected proposal.</string>
           </property>
           <property name="text">
-           <string>688743</string>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_proposal_proposal_id</string>
+           <string>Update</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Title:</string>
+        <item>
+         <layout class="QFormLayout" name="proposal_form_layout">
+          <property name="labelAlignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="PyDMLineEdit" name="proposal_title_line_edit">
-          <property name="toolTip">
-           <string/>
+          <property name="rightMargin">
+           <number>0</number>
           </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_proposal_title</string>
-          </property>
-          <property name="displayFormat" stdset="0">
-           <enum>PyDMLineEdit::String</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Dates:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Proposal ID:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
            <widget class="PyDMLineEdit" name="PyDMLineEdit">
             <property name="toolTip">
              <string/>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_proposal_start_date</string>
+             <string>haven://beamline_manager.bss.proposal.proposal_id</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Title:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="PyDMLineEdit" name="proposal_title_line_edit">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.proposal.title</string>
             </property>
             <property name="displayFormat" stdset="0">
              <enum>PyDMLineEdit::String</enum>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLabel" name="label_16">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>—</string>
+             <string>Dates:</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="PyDMDateTimeEdit" name="PyDMDateTimeEdit_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="displayFormat">
+               <string>yyyy-MM-dd hh:mm</string>
+              </property>
+              <property name="channel" stdset="0">
+               <string>haven://beamline_manager.bss.proposal.start_timestamp</string>
+              </property>
+              <property name="timeBase" stdset="0">
+               <enum>PyDMDateTimeEdit::Seconds</enum>
+              </property>
+              <property name="relative" stdset="0">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_25">
+              <property name="text">
+               <string>—</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PyDMDateTimeEdit" name="PyDMDateTimeEdit_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="displayFormat">
+               <string>yyyy-MM-dd hh:mm</string>
+              </property>
+              <property name="channel" stdset="0">
+               <string>haven://beamline_manager.bss.proposal.end_timestamp</string>
+              </property>
+              <property name="timeBase" stdset="0">
+               <enum>PyDMDateTimeEdit::Seconds</enum>
+              </property>
+              <property name="relative" stdset="0">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Users:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="PyDMLineEdit" name="proposal_users_line_edit">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.proposal.user_last_names</string>
+            </property>
+            <property name="displayFormat" stdset="0">
+             <enum>PyDMLineEdit::String</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Badges:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="PyDMLineEdit" name="proposal_badges_line_edit">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.proposal.user_badges</string>
+            </property>
+            <property name="displayFormat" stdset="0">
+             <enum>PyDMLineEdit::String</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>PIs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="PyDMLineEdit" name="PyDMLineEdit_9">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.proposal.user_PIs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Mail-In:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="PyDMCheckbox" name="proposal_mailin_checkbox">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.proposal.mail_in_flag</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Proprietary</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="PyDMCheckbox" name="proposal_proprietary_checkbox">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.proposal.proprietary_flag</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="esaf_group_box">
+       <property name="title">
+        <string>ESAF</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QTableView" name="esaf_view">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="update_esaf_button">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Set the current ESAF data based on the currently selected proposal.</string>
+          </property>
+          <property name="text">
+           <string>Update</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <property name="labelAlignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>ESAF ID:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
            <widget class="PyDMLineEdit" name="PyDMLineEdit_5">
             <property name="toolTip">
              <string/>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_proposal_end_date</string>
+             <string>haven://beamline_manager.bss.esaf.esaf_id</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Status:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="PyDMLabel" name="PyDMLabel_2">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Approved</string>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.esaf.esaf_status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Title:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="PyDMLineEdit" name="PyDMLineEdit_2">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.esaf.title</string>
             </property>
             <property name="displayFormat" stdset="0">
              <enum>PyDMLineEdit::String</enum>
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Dates:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="PyDMDateTimeEdit" name="PyDMDateTimeEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="displayFormat">
+               <string>yyyy-MM-dd hh:mm</string>
+              </property>
+              <property name="channel" stdset="0">
+               <string>haven://beamline_manager.bss.esaf.start_timestamp</string>
+              </property>
+              <property name="timeBase" stdset="0">
+               <enum>PyDMDateTimeEdit::Seconds</enum>
+              </property>
+              <property name="relative" stdset="0">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>—</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PyDMDateTimeEdit" name="PyDMDateTimeEdit_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="displayFormat">
+               <string>yyyy-MM-dd hh:mm</string>
+              </property>
+              <property name="channel" stdset="0">
+               <string>haven://beamline_manager.bss.esaf.end_timestamp</string>
+              </property>
+              <property name="timeBase" stdset="0">
+               <enum>PyDMDateTimeEdit::Seconds</enum>
+              </property>
+              <property name="relative" stdset="0">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="1">
+           <widget class="PyDMLineEdit" name="PyDMLineEdit_3">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.esaf.user_last_names</string>
+            </property>
+            <property name="displayFormat" stdset="0">
+             <enum>PyDMLineEdit::String</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="PyDMLineEdit" name="PyDMLineEdit_4">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.esaf.user_badges</string>
+            </property>
+            <property name="displayFormat" stdset="0">
+             <enum>PyDMLineEdit::String</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="PyDMLineEdit" name="PyDMLineEdit_8">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.bss.esaf.user_PIs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>Users:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Badges:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>PIs</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>Users:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="PyDMLineEdit" name="proposal_users_line_edit">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_proposal_user_last_names</string>
-          </property>
-          <property name="displayFormat" stdset="0">
-           <enum>PyDMLineEdit::String</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Badges:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="PyDMLineEdit" name="proposal_badges_line_edit">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_proposal_user_badges</string>
-          </property>
-          <property name="displayFormat" stdset="0">
-           <enum>PyDMLineEdit::String</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Mail-In:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="PyDMCheckbox" name="proposal_mailin_checkbox">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss.proposal.mail_in_flag</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>Proprietary</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="PyDMCheckbox" name="proposal_proprietary_checkbox">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_proposal_proprietary_flag</string>
-          </property>
-         </widget>
-        </item>
        </layout>
-      </item>
-     </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="disclaimer_label">
+       <property name="text">
+        <string>Changes made here are only reflected in local metadata and do not affect the main APS BSS database.</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="esaf_group_box">
-     <property name="title">
-      <string>ESAF</string>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QTableView" name="esaf_view">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>400</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="update_esaf_button">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Update</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QFormLayout" name="formLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Local Storage</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+       <layout class="QFormLayout" name="formLayout_2">
         <property name="labelAlignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>ESAF ID:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="PyDMLabel" name="PyDMLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="text">
-           <string>257794</string>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_esaf_esaf_id</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_15">
-          <property name="text">
-           <string>Status:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="PyDMLabel" name="PyDMLabel_2">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="text">
-           <string>Approved</string>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_esaf_esaf_status</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="label_12">
           <property name="text">
-           <string>Title:</string>
+           <string>Path:</string>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="PyDMLineEdit" name="PyDMLineEdit_2">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="channel" stdset="0">
-           <string>haven://bss_esaf_title</string>
-          </property>
-          <property name="displayFormat" stdset="0">
-           <enum>PyDMLineEdit::String</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>Dates:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="PyDMLineEdit" name="PyDMLineEdit_6">
+           <widget class="PyDMLabel" name="PyDMLabel_3">
             <property name="toolTip">
              <string/>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_esaf_start_date</string>
-            </property>
-            <property name="displayFormat" stdset="0">
-             <enum>PyDMLineEdit::String</enum>
+             <string>haven://beamline_manager.local_storage.full_path</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_6">
+           <widget class="QPushButton" name="pushButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
-             <string>—</string>
+             <string>Open</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="PyDMLineEdit" name="PyDMLineEdit_7">
-            <property name="toolTip">
-             <string/>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="channel" stdset="0">
-             <string>haven://bss_esaf_end_date</string>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
             </property>
-            <property name="displayFormat" stdset="0">
-             <enum>PyDMLineEdit::String</enum>
-            </property>
-           </widget>
+           </spacer>
           </item>
          </layout>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_13">
+         <widget class="QLabel" name="label_17">
           <property name="text">
-           <string>Users:</string>
+           <string/>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="PyDMLineEdit" name="PyDMLineEdit_3">
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Exists:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="PyDMByteIndicator" name="PyDMByteIndicator">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="alarmSensitiveContent" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="alarmSensitiveBorder" stdset="0">
+             <bool>true</bool>
+            </property>
+            <property name="PyDMToolTip" stdset="0">
+             <string/>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.local_storage.exists</string>
+            </property>
+            <property name="showLabels" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="bigEndian" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="circles" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="labelPosition" stdset="0">
+             <enum>QTabWidget::West</enum>
+            </property>
+            <property name="numBits" stdset="0">
+             <number>1</number>
+            </property>
+            <property name="shift" stdset="0">
+             <number>0</number>
+            </property>
+            <property name="labels" stdset="0">
+             <stringlist>
+              <string>Exists</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="PyDMPushButton" name="PyDMPushButton">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Create</string>
+            </property>
+            <property name="channel" stdset="0">
+             <string>haven://beamline_manager.local_storage.create</string>
+            </property>
+            <property name="pressValue" stdset="0">
+             <string>1</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_21">
+          <property name="text">
+           <string>Filesystem:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_22">
+          <property name="text">
+           <string>Sub Directory:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="PyDMLineEdit" name="PyDMLineEdit_10">
           <property name="toolTip">
            <string/>
           </property>
           <property name="channel" stdset="0">
-           <string>haven://bss_esaf_user_last_names</string>
-          </property>
-          <property name="displayFormat" stdset="0">
-           <enum>PyDMLineEdit::String</enum>
+           <string>haven://beamline_manager.local_storage.file_system</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>Badges:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="PyDMLineEdit" name="PyDMLineEdit_4">
+        <item row="1" column="1">
+         <widget class="PyDMLineEdit" name="PyDMLineEdit_11">
           <property name="toolTip">
            <string/>
           </property>
           <property name="channel" stdset="0">
-           <string>haven://bss_esaf_user_badges</string>
-          </property>
-          <property name="displayFormat" stdset="0">
-           <enum>PyDMLineEdit::String</enum>
+           <string>haven://beamline_manager.local_storage.sub_directory</string>
           </property>
          </widget>
         </item>
        </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_12">
-     <property name="text">
-      <string>Changes made here are only reflected in local metadata and do not affect the main APS BSS database.</string>
-     </property>
-    </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="title">
+        <string>Data Management DAQ</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="title">
+        <string>Slack Channels</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="text">
+           <string>Create</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -452,14 +828,29 @@
    <header>pydm.widgets.label</header>
   </customwidget>
   <customwidget>
+   <class>PyDMByteIndicator</class>
+   <extends>QWidget</extends>
+   <header>pydm.widgets.byte</header>
+  </customwidget>
+  <customwidget>
    <class>PyDMCheckbox</class>
    <extends>QCheckBox</extends>
    <header>pydm.widgets.checkbox</header>
   </customwidget>
   <customwidget>
+   <class>PyDMDateTimeEdit</class>
+   <extends>QDateTimeEdit</extends>
+   <header>pydm.widgets.datetime</header>
+  </customwidget>
+  <customwidget>
    <class>PyDMLineEdit</class>
    <extends>QLineEdit</extends>
    <header>pydm.widgets.line_edit</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMPushButton</class>
+   <extends>QPushButton</extends>
+   <header>pydm.widgets.pushbutton</header>
   </customwidget>
  </customwidgets>
  <resources/>

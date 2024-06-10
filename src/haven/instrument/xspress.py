@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import time
 from collections import OrderedDict
@@ -22,7 +21,7 @@ from pcdsdevices.type_hints import OphydDataType, SignalToValue
 
 from .._iconfig import load_config
 from .device import RegexComponent as RECpt
-from .device import aload_devices, make_device
+from .device import make_device
 from .fluorescence_detector import (
     MCASumMixin,
     ROIMixin,
@@ -31,7 +30,7 @@ from .fluorescence_detector import (
     add_roi_sums,
 )
 
-__all__ = ["load_xspress", "Xspress3Detector", "ROI"]
+__all__ = ["load_xspress_detectors", "Xspress3Detector", "ROI"]
 
 
 log = logging.getLogger(__name__)
@@ -336,6 +335,10 @@ class Xspress3Detector(SingleTrigger_V34, DetectorBase, XRFMixin):
         for mca in self.mca_records():
             mca.dead_time_percent.subscribe(self._update_dead_time_calcs)
 
+    @property
+    def default_time_signal(self):
+        return self.cam.acquire_time
+
     def _update_dead_time_calcs(self, *args, value, obj, **kwargs):
         self._dead_times[obj.name] = value
         # Calculate aggregate dead time stats
@@ -515,7 +518,7 @@ class Xspress3Detector(SingleTrigger_V34, DetectorBase, XRFMixin):
         return {self.name: desc}
 
 
-async def make_xspress_device(name, prefix, num_elements):
+def make_xspress_device(name, prefix, num_elements):
     # Build the mca components
     # (Epics uses 1-index instead of 0-index)
     mca_range = range(num_elements)
@@ -537,7 +540,7 @@ async def make_xspress_device(name, prefix, num_elements):
     class_name = name.title().replace("_", "")
     parent_classes = (Xspress3Detector,)
     Cls = type(class_name, parent_classes, attrs)
-    return await make_device(
+    return make_device(
         Cls,
         name=name,
         prefix=f"{prefix}:",
@@ -545,17 +548,7 @@ async def make_xspress_device(name, prefix, num_elements):
     )
 
 
-def load_xspress_coros(config=None):
-    if config is None:
-        config = load_config()
-    # Create detector device
-    for name, cfg in config.get("xspress", {}).items():
-        yield make_xspress_device(
-            prefix=cfg["prefix"], num_elements=cfg["num_elements"], name=name
-        )
-
-
-def load_xspress(config=None):
+def load_xspress_detectors(config=None):
     """Load all the xspress-based detector devices.
 
     Configuration is determined from the iconfig.toml file.
@@ -565,7 +558,17 @@ def load_xspress(config=None):
     testing.
 
     """
-    asyncio.run(aload_devices(*load_xspress_coros(config=config)))
+    if config is None:
+        config = load_config()
+    # Create detector device
+    devices = []
+    for name, cfg in config.get("xspress", {}).items():
+        devices.append(
+            make_xspress_device(
+                prefix=cfg["prefix"], num_elements=cfg["num_elements"], name=name
+            )
+        )
+    return devices
 
 
 # -----------------------------------------------------------------------------

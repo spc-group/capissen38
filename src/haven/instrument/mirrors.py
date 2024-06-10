@@ -1,5 +1,3 @@
-import asyncio
-
 from apstools.synApps import TransformRecord
 from ophyd import Component as Cpt
 from ophyd import Device
@@ -9,7 +7,7 @@ from ophyd import Kind
 from .. import exceptions
 from .._iconfig import load_config
 from .device import RegexComponent as RCpt
-from .device import aload_devices, make_device
+from .device import make_device
 from .motor import HavenMotor
 
 
@@ -137,10 +135,11 @@ class KBMirrors(Device):
         super().__init__(*args, **kwargs)
 
 
-def load_mirror_coros(config=None):
+def load_mirrors(config=None):
     if config is None:
         config = load_config()
     # Create two-bounce KB mirror sets
+    devices = []
     for name, kb_config in config.get("kb_mirrors", {}).items():
         # Build the motor prefixes
         try:
@@ -167,8 +166,10 @@ def load_mirror_coros(config=None):
                 f"Device {name} missing '{ex.args[0]}': {kb_config}"
             )
         # Make the device
-        yield make_device(
-            KBMirrors, prefix=prefix, name=name, labels={"kb_mirrors"}, **motors
+        devices.append(
+            make_device(
+                KBMirrors, prefix=prefix, name=name, labels={"kb_mirrors"}, **motors
+            )
         )
     # Create single-bounce mirrors
     for name, mirror_config in config.get("mirrors", {}).items():
@@ -181,13 +182,15 @@ def load_mirror_coros(config=None):
         if DeviceClass is None:
             msg = f"mirrors.{name}.device_class={mirror_config['device_class']}"
             raise exceptions.UnknownDeviceConfiguration(msg)
-        yield make_device(
-            DeviceClass, prefix=mirror_config["prefix"], name=name, labels={"mirrors"}
+        devices.append(
+            make_device(
+                DeviceClass,
+                prefix=mirror_config["prefix"],
+                name=name,
+                labels={"mirrors"},
+            )
         )
-
-
-def load_mirrors(config=None):
-    asyncio.run(aload_devices(*load_mirror_coros(config=config)))
+    return devices
 
 
 # -----------------------------------------------------------------------------

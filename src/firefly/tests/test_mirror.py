@@ -12,7 +12,6 @@ def hhl_mirror(sim_registry):
     """A fake set of slits using the 4-blade setup."""
     FakeMirrors = make_fake_device(HighHeatLoadMirror)
     mirr = FakeMirrors(prefix="255ida:ORM1:", name="hhl_mirror", labels={"mirrors"})
-    sim_registry.register(mirr)
     return mirr
 
 
@@ -21,7 +20,6 @@ def hhl_bendable_mirror(sim_registry):
     """A fake set of slits using the 4-blade setup."""
     FakeMirrors = make_fake_device(BendableHighHeatLoadMirror)
     mirr = FakeMirrors(prefix="255ida:ORM1:", name="hhl_mirror", labels={"mirrors"})
-    sim_registry.register(mirr)
     return mirr
 
 

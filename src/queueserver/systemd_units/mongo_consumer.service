@@ -1,0 +1,14 @@
+[Unit]
+Description=consumer for saving bluesky documents to database via kafka
+After=syslog.target network.target
+Wants=queueserver.service
+After=queueserver.service
+
+[Service]
+Environment="BLUESKY_DIR=%h/bluesky"
+ExecStart=/bin/bash -l -c 'micromamba activate haven && env python %h/src/queueserver/mongo_consumer.py'
+# ExecStopPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:mongo_consumer_state 1
+# ExecStartPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:mongo_consumer_state 2
+
+[Install]
+WantedBy=default.target

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Sequence
 
@@ -19,7 +18,7 @@ from .area_detector import (  # noqa: F401
     SimDetector,
     StatsPlugin_V34,
 )
-from .device import aload_devices, make_device
+from .device import make_device
 
 log = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ class AravisDetector(SingleTrigger, DetectorBase):
     stats5 = ADCpt(StatsPlugin_V34, "Stats5:", kind=Kind.normal)
 
 
-def load_camera_coros(config=None) -> Sequence[DetectorBase]:
+def load_cameras(config=None) -> Sequence[DetectorBase]:
     """Create co-routines for loading cameras from config files.
 
     Returns
@@ -64,13 +63,14 @@ def load_camera_coros(config=None) -> Sequence[DetectorBase]:
     if config is None:
         config = load_config()
     # Get configuration details for the cameras
-    devices = {
+    device_configs = {
         k: v
         for (k, v) in config["camera"].items()
         if hasattr(v, "keys") and "prefix" in v.keys()
     }
     # Load each camera
-    for key, cam_config in devices.items():
+    devices = []
+    for key, cam_config in device_configs.items():
         class_name = cam_config.get("device_class", "AravisDetector")
         camera_name = cam_config.get("name", key)
         description = cam_config.get("description", cam_config.get("name", key))
@@ -79,17 +79,17 @@ def load_camera_coros(config=None) -> Sequence[DetectorBase]:
         if DeviceClass is None:
             msg = f"camera.{key}.device_class={cam_config['device_class']}"
             raise exceptions.UnknownDeviceConfiguration(msg)
-        yield make_device(
-            DeviceClass=DeviceClass,
-            prefix=f"{cam_config['prefix']}:",
-            name=camera_name,
-            description=description,
-            labels={"cameras"},
+        # Create the device object
+        devices.append(
+            make_device(
+                DeviceClass=DeviceClass,
+                prefix=f"{cam_config['prefix']}:",
+                name=camera_name,
+                description=description,
+                labels={"cameras"},
+            )
         )
-
-
-def load_cameras(config=None):
-    asyncio.run(aload_devices(*load_camera_coros(config=config)))
+    return devices
 
 
 # -----------------------------------------------------------------------------

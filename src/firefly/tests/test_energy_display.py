@@ -17,19 +17,16 @@ FakeUndulator = make_fake_device(ApsUndulator)
 
 def test_mono_caqtdm_macros(qtbot, ffapp, sim_registry):
     # Create fake device
-    mono = sim_registry.register(FakeMonochromator("mono_ioc", name="monochromator"))
-    sim_registry.register(
-        FakeEnergyPositioner(
-            mono_pv="mono_ioc:Energy",
-            id_offset_pv="mono_ioc:ID_offset",
-            id_tracking_pv="mono_ioc:ID_tracking",
-            id_prefix="id_ioc",
-            name="energy",
-        )
+    FakeMonochromator("mono_ioc", name="monochromator")
+    FakeEnergyPositioner(
+        mono_pv="mono_ioc:Energy",
+        id_offset_pv="mono_ioc:ID_offset",
+        id_tracking_pv="mono_ioc:ID_tracking",
+        id_prefix="id_ioc",
+        name="energy",
     )
     undulator = FakeUndulator("id_ioc:", name="undulator", labels={"xray_sources"})
     undulator.energy.pvname = "id_ioc:Energy"
-    sim_registry.register(undulator)
     # Load display
     display = EnergyDisplay()
     display.launch_caqtdm = mock.MagicMock()
@@ -50,17 +47,14 @@ def test_mono_caqtdm_macros(qtbot, ffapp, sim_registry):
 def test_id_caqtdm_macros(qtbot, ffapp, sim_registry):
     # Create fake device
     mono = FakeMonochromator("mono_ioc", name="monochromator")
-    sim_registry.register(
-        FakeEnergyPositioner(
-            mono_pv="mono_ioc:Energy",
-            id_offset_pv="mono_ioc:ID_offset",
-            id_tracking_pv="mono_ioc:ID_tracking",
-            id_prefix="id_ioc",
-            name="energy",
-        )
+    FakeEnergyPositioner(
+        mono_pv="mono_ioc:Energy",
+        id_offset_pv="mono_ioc:ID_offset",
+        id_tracking_pv="mono_ioc:ID_tracking",
+        id_prefix="id_ioc",
+        name="energy",
     )
-    undulator = FakeUndulator("id_ioc:", name="undulator", labels={"xray_sources"})
-    sim_registry.register(undulator)
+    FakeUndulator("id_ioc:", name="undulator", labels={"xray_sources"})
     # Load display
     display = EnergyDisplay()
     display.launch_caqtdm = mock.MagicMock()
@@ -76,15 +70,14 @@ def test_id_caqtdm_macros(qtbot, ffapp, sim_registry):
 
 def test_move_energy(qtbot, ffapp, sim_registry):
     mono = FakeMonochromator("mono_ioc", name="monochromator")
-    sim_registry.register(
-        FakeEnergyPositioner(
-            mono_pv="mono_ioc:Energy",
-            id_offset_pv="mono_ioc:ID_offset",
-            id_tracking_pv="mono_ioc:ID_tracking",
-            id_prefix="id_ioc",
-            name="energy",
-        )
+    FakeEnergyPositioner(
+        mono_pv="mono_ioc:Energy",
+        id_offset_pv="mono_ioc:ID_offset",
+        id_tracking_pv="mono_ioc:ID_tracking",
+        id_prefix="id_ioc",
+        name="energy",
     )
+
     # Load display
     disp = EnergyDisplay()
     # Click the set energy button
@@ -104,15 +97,14 @@ def test_move_energy(qtbot, ffapp, sim_registry):
 def test_predefined_energies(qtbot, ffapp, sim_registry):
     # Create fake device
     mono = FakeMonochromator("mono_ioc", name="monochromator")
-    sim_registry.register(
-        FakeEnergyPositioner(
-            mono_pv="mono_ioc:Energy",
-            id_offset_pv="mono_ioc:ID_offset",
-            id_tracking_pv="mono_ioc:ID_tracking",
-            id_prefix="id_ioc",
-            name="energy",
-        )
+    FakeEnergyPositioner(
+        mono_pv="mono_ioc:Energy",
+        id_offset_pv="mono_ioc:ID_offset",
+        id_tracking_pv="mono_ioc:ID_tracking",
+        id_prefix="id_ioc",
+        name="energy",
     )
+
     # Set up the required Application state
     # Load display
     disp = EnergyDisplay()

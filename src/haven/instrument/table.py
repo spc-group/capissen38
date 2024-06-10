@@ -1,12 +1,10 @@
-import asyncio
-
 from apstools.synApps import TransformRecord
 from ophyd import Component as Cpt
 from ophyd import Device, Kind, OphydObject
 
 from .. import exceptions
 from .._iconfig import load_config
-from .device import aload_devices, make_device
+from .device import make_device
 from .motor import HavenMotor
 
 
@@ -154,10 +152,11 @@ class Table(Device):
         super().__init__(*args, **kwargs)
 
 
-def load_table_coros(config=None):
+def load_tables(config=None):
     if config is None:
         config = load_config()
     # Create two-bounce KB mirror sets
+    devices = []
     for name, tbl_config in config.get("table", {}).items():
         # Build the motor prefixes
         try:
@@ -176,17 +175,16 @@ def load_table_coros(config=None):
                 f"Device {name} missing '{ex.args[0]}': {tbl_config}"
             ) from ex
         # Make the device
-        yield make_device(
-            Table,
-            prefix=prefix,
-            name=name,
-            labels={"tables"},
-            **attrs,
+        devices.append(
+            make_device(
+                Table,
+                prefix=prefix,
+                name=name,
+                labels={"tables"},
+                **attrs,
+            )
         )
-
-
-def load_tables(config=None):
-    asyncio.run(aload_devices(*load_table_coros(config=config)))
+    return devices
 
 
 # -----------------------------------------------------------------------------

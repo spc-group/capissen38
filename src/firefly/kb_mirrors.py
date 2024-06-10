@@ -1,5 +1,7 @@
 from firefly.slits import SlitsDisplay
 
+# from haven.instrument import mirrors
+
 
 class KBMirrorsDisplay(SlitsDisplay):
     @property

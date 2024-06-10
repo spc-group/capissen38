@@ -186,46 +186,48 @@ Options 1 and 2 can be intermingled. For example:
    plan = haven.xafs_scan(..., detectors=detectors)
 
 Supplying the *detectors* argument will ensure that the detectors are
-captured in the data streams, but it may still be necessary to
-**specify positioners for setting the exposure time**. By default,
-only the ion chambers will receive have their exposure time set. This
-is especially important when using the *k_weight* parameter to
-:py:func:`~haven.plans.xafs_scan.xafs_scan()` or the *exposure*
-parameter to :py:func:`~haven.plans.energy_scan.energy_scan()`.
+captured in the data streams. By default, each detector will be
+checked for an attribute named *default_time_signal* which will be set
+with the exposure time. This is especially important when using the
+*k_weight* parameter to :py:func:`~haven.plans.xafs_scan.xafs_scan()`
+or the *exposure* parameter to
+:py:func:`~haven.plans.energy_scan.energy_scan()`.
 
-Both plans accept a *time_positioners* argument for this purpose,
-which should be a list of entries similar to those accepted for
-*detectors* described above but with positioners for the various
-detectors. Extending the above example:
+In some cases, it may be desirable to explicitly provide a list of
+time signals, such as when using live time instead of real time. Both
+plans accept a *time_signals* argument for this purpose, which should
+be a list of entries similar to those accepted for *detectors*
+described above but with signals declaring the exposure time for the
+various detectors. Extending the above example:
 
 .. code-block:: python
 
    eiger = haven.registry.find("eiger")
    detectors = [eiger, "ion_chambers"]
-   time_positioners = [eiger.cam.acquire_time, "ion_chambers.exposure_time"]
-   plan = haven.xafs_scan(..., detectors=detectors, time_positioners=time_positioners)
+   time_signals = [eiger.cam.acquire_time, "ion_chambers.exposure_time"]
+   plan = haven.xafs_scan(..., detectors=detectors, time_signals=time_signals)
 
 The above example actually uses all of the ion chambers' exposure
-times as separate positioners. This will work but produces extra
-messages and may be confusing. Since counting is handled by the
-scaler, any of the ion chambers on the same scaler can be used as a
-time positioner:
+times as separate signals. This will work but produces extra messages
+and may be confusing. Since counting is handled by the scaler, any of
+the ion chambers on the same scaler can be used as a time positioner:
 
 .. code-block:: python
    
    ion_chambers = haven.registry.findall("ion_chambers")
-   time_positioners = [eiger.cam.acquire_time, ion_chambers[0].exposure_time]
-   plan = haven.xafs_scan(..., time_positioners=time_positioners)
+   time_signals = [eiger.cam.acquire_time, ion_chambers[0].exposure_time]
+   plan = haven.xafs_scan(..., time_signals=time_signals)
 
 Lastly, we may want to **specify a different energy position** for
-example when using a secondary monocrhomator. By default the "energy"
-positioner is used, which is a pseudo-positioner that controls both
-the monochromator and the insertion device (if present). This
-positioner temporariy **disables the EPICS-based pseudo-motor** in use
-at sector 25-ID since the done status is not properly reported for the
-insertion device when using the EPICS implementation.
+example when scanning only the monochromator and keeping a fixed,
+wide-tapered insertion device. By default, the "energy" positioner is
+used, which is a pseudo-positioner that controls both the
+monochromator and the insertion device (if present). This positioner
+temporariy **disables the EPICS-based pseudo-motor** in use at sector
+25-ID since the done status is not properly reported for the insertion
+device when using the EPICS implementation.
 
-The *energy_positioners* argument accepts similar types as the
+The *energy_signals* argument accepts similar types as the
 previous options just discussed, and each one will be set to the
 energy in electron-volts at each point. For example, to scan only the
 monochromator energy we could do:
@@ -233,11 +235,11 @@ monochromator energy we could do:
 .. code-block:: python
 
    mono_energy = haven.registry.find("monochromator.energy")
-   plan = haven.energy_scan(..., energy_positioners=[mono_energy])
+   plan = haven.energy_scan(..., energy_signals=[mono_energy])
 
 or equivalently:
 
 .. code-block:: python
 
-   plan = haven.energy_scan(..., energy_positioners="monochromator.energy")
+   plan = haven.energy_scan(..., energy_signals="monochromator.energy")
 

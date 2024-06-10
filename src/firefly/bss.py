@@ -1,8 +1,8 @@
 import logging
-from functools import lru_cache
 
 import qtawesome as qta
 from apsbss import apsbss
+from dm.common.exceptions.objectNotFound import ObjectNotFound
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QStandardItem, QStandardItemModel
 
@@ -46,13 +46,25 @@ class BssDisplay(display.FireflyDisplay):
         self.ui.update_proposal_button.clicked.connect(self.update_proposal)
         self.ui.update_esaf_button.setIcon(icon)
         self.ui.update_esaf_button.clicked.connect(self.update_esaf)
+        self.ui.refresh_models_button.clicked.connect(self.load_models)
+        # Icon for the refresh button
+        self.ui.refresh_models_button.setIcon(qta.icon("fa5s.sync"))
 
-    @property
-    @lru_cache()
+    def customize_device(self):
+        self._device = haven.registry.find("beamline_manager")
+
     def proposals(self):
         config = haven.load_config()
         proposals = []
-        for proposal in self.api.getCurrentProposals(config["bss"]["beamline"]):
+        beamline = self._device.bss.proposal.beamline_name.get()
+        cycle = self._device.bss.esaf.aps_cycle.get()
+        # Get proposal data from the API
+        try:
+            api_result = self.api.listProposals(cycle, beamline)
+        except ObjectNotFound:
+            api_result = []
+        # Parse the API payload into the format for the BSS IOC
+        for proposal in api_result:
             users = proposal["experimenters"]
             proposals.append(
                 {
@@ -66,12 +78,18 @@ class BssDisplay(display.FireflyDisplay):
             )
         return proposals
 
-    @property
-    @lru_cache()
     def esafs(self):
         config = haven.load_config()
         esafs_ = []
-        for esaf in self.api.getCurrentEsafs(config["bss"]["beamline"].split("-")[0]):
+        beamline = self._device.bss.proposal.beamline_name.get()
+        cycle = self._device.bss.esaf.aps_cycle.get()
+        # Retrieve current ESAFS from data management API
+        try:
+            api_result = self.api.listESAFs(cycle, beamline.split("-")[0])
+        except (ObjectNotFound, KeyError):
+            api_result = []
+        # Parse the API data into a format usable by the BSS IOC
+        for esaf in api_result:
             users = esaf["experimentUsers"]
             esafs_.append(
                 {
@@ -92,7 +110,7 @@ class BssDisplay(display.FireflyDisplay):
         self.proposal_model = QStandardItemModel()
         self.proposal_model.setHorizontalHeaderLabels(col_names)
         # Load individual proposals
-        proposals = self.proposals
+        proposals = self.proposals()
         for proposal in proposals:
             items = [QStandardItem(str(proposal[col])) for col in col_names]
             self.proposal_model.appendRow(items)
@@ -102,7 +120,7 @@ class BssDisplay(display.FireflyDisplay):
         self.esaf_model = QStandardItemModel()
         self.esaf_model.setHorizontalHeaderLabels(col_names)
         # Load individual esafs
-        esafs = self.esafs
+        esafs = self.esafs()
         for esaf in esafs:
             items = [QStandardItem(str(esaf[col])) for col in col_names]
             self.esaf_model.appendRow(items)
@@ -125,9 +143,8 @@ class BssDisplay(display.FireflyDisplay):
     def update_proposal(self):
         new_id = self._proposal_id
         # Change the proposal in the EPICS record
-        bss = haven.registry.find(name="bss")
+        bss = haven.registry.find("beamline_manager.bss")
         bss.proposal.proposal_id.set(new_id).wait()
-        self.api.epicsUpdate(bss.prefix)
         # Notify any interested parties that the proposal has been changed
         self.proposal_changed.emit()
 
@@ -143,10 +160,9 @@ class BssDisplay(display.FireflyDisplay):
     def update_esaf(self):
         new_id = self._esaf_id
         # Change the esaf in the EPICS record
-        bss = haven.registry.find(name="bss")
+        bss = haven.registry.find("beamline_manager.bss")
         bss.wait_for_connection()
         bss.esaf.esaf_id.set(new_id).wait(timeout=5)
-        self.api.epicsUpdate(bss.prefix)
         # Notify any interested parties that the esaf has been changed
         self.esaf_changed.emit()
 

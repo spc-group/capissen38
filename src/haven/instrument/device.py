@@ -4,13 +4,42 @@ import re
 import time as ttime
 from typing import Callable, Union
 
+from caproto import CaprotoTimeoutError
+from caproto.asyncio.client import Context
 from ophyd import Component, Device, K
 from ophyd.sim import make_fake_device
 
 from .._iconfig import load_config
-from .instrument_registry import registry
 
 log = logging.getLogger(__name__)
+
+
+async def resolve_device_names(ic_defns):
+    """Update ion chamber definitions to include the EPICS name field.
+
+    Updates *ic_defns* in place to add the *name* key. Each entry in
+    *ic_defns* should have a *desc_pv* key with the PV to be checked
+    for the device name.
+
+    Ensures names are safe as Ophyd device names.
+
+    """
+
+    async def get_name(pv):
+        try:
+            response = await pv.read()
+        except CaprotoTimeoutError:
+            return None
+        else:
+            # Read PV values over the network
+            return response.data.tobytes().strip(b"\x00").decode("latin-1")
+
+    ctx = Context()
+    desc_pvs = await ctx.get_pvs(*[defn["desc_pv"] for defn in ic_defns])
+    names = await asyncio.gather(*(get_name(pv) for pv in desc_pvs))
+    # Add the results back into the defitions
+    for name, defn in zip(names, ic_defns):
+        defn["name"] = name
 
 
 def titelize(name):
@@ -27,8 +56,8 @@ async def aload_devices(*coros):
     return await asyncio.gather(*coros)
 
 
-async def make_device(DeviceClass, *args, FakeDeviceClass=None, **kwargs) -> Device:
-    """Create camera device and add it to the registry.
+def make_device(DeviceClass, *args, FakeDeviceClass=None, **kwargs) -> Device:
+    """Create device and add it to the registry.
 
     If the beamline is not connected, i.e. the config file has:
 
@@ -63,25 +92,11 @@ async def make_device(DeviceClass, *args, FakeDeviceClass=None, **kwargs) -> Dev
     # Make sure we can connect
     name = kwargs.get("name", "unknown")
     t0 = ttime.monotonic()
-    try:
-        # Create the ophyd object
-        device = Cls(
-            *args,
-            **kwargs,
-        )
-        await await_for_connection(device)
-    except TimeoutError as e:
-        log.warning(
-            f"Could not connect to {DeviceClass.__name__} in"
-            f" {round(ttime.monotonic() - t0, 2)} sec: {name}."
-        )
-        log.info(f"Reason for {name} failure: {e}.")
-        return None
-    else:
-        # Register the device
-        registry.register(device)
-        log.debug(f"Connected to {name} in {round(ttime.monotonic() - t0, 2)} sec.")
-        return device
+    device = Cls(
+        *args,
+        **kwargs,
+    )
+    return device
 
 
 async def await_for_connection(dev, all_signals=False, timeout=3.0):

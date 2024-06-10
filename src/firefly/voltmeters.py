@@ -2,11 +2,12 @@ import json
 import logging
 from typing import Mapping, Optional, Sequence
 
+from bluesky_queueserver_api import BPlan
 from pydm.widgets import PyDMEmbeddedDisplay
 from qtpy import QtWidgets
 
 import haven
-from firefly import display
+from firefly import FireflyApplication, display
 
 # from .voltmeter import VoltmeterDisplay
 
@@ -56,6 +57,32 @@ class VoltmetersDisplay(display.FireflyDisplay):
             # Add the Embedded Display to the Results Layout
             self.voltmeters_layout.addWidget(disp)
             self._ion_chamber_displays.append(disp)
+        # Connect support for running the auto_gain plan
+        self.ui.auto_gain_button.setToolTip(haven.auto_gain.__doc__)
+        self.ui.auto_gain_button.clicked.connect(self.run_auto_gain)
+
+    def run_auto_gain(self):
+        """Send a plan to the queueserver to auto-gain the pre-amps."""
+        # Get plan arguments from display widgets
+        kw = {}
+        volts_min = self.ui.volts_min_line_edit.text()
+        if volts_min != "":
+            kw["volts_min"] = float(volts_min)
+        volts_max = self.ui.volts_max_line_edit.text()
+        if volts_max != "":
+            kw["volts_max"] = float(volts_max)
+        # Check which ion chambers to run the plan with
+        ic_names = []
+        for ic_disp in self._ion_chamber_displays:
+            if ic_disp.embedded_widget is None:
+                continue
+            if ic_disp.embedded_widget.ui.auto_gain_checkbox.isChecked():
+                ic_names.append(ic_disp.embedded_widget.macros()["IC"])
+        # Construct the plan
+        item = BPlan("auto_gain", ic_names, **kw)
+        # Send it to the queue server
+        app = FireflyApplication.instance()
+        app.add_queue_item(item)
 
     def ui_filename(self):
         return "voltmeters.ui"

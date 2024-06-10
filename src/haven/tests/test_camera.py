@@ -6,7 +6,7 @@ from haven.instrument.camera import AravisDetector, load_cameras
 PREFIX = "255idgigeA:"
 
 
-def test_load_cameras():
+def test_load_cameras(sim_registry):
     load_cameras(config=load_config())
     # Check that cameras were registered
     cameras = list(registry.findall(label="cameras"))
@@ -22,11 +22,14 @@ def test_camera_device():
 
 def test_camera_in_registry(sim_registry):
     camera = AravisDetector(PREFIX, name="camera")
-    sim_registry.register(camera)
     # Check that all sub-components are accessible
     camera = sim_registry.find(camera.name)
-    cam = sim_registry.find(f"{camera.name}_cam")
-    gain = sim_registry.find(f"{camera.name}_cam.gain")
+    sim_registry.find(f"{camera.name}_cam")
+    sim_registry.find(f"{camera.name}_cam.gain")
+
+
+def test_default_time_signal(sim_camera):
+    assert sim_camera.default_time_signal is sim_camera.cam.acquire_time
 
 
 # -----------------------------------------------------------------------------

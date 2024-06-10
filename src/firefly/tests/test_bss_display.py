@@ -1,16 +1,14 @@
 import pytest
-from ophyd.sim import instantiate_fake_device
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QStandardItemModel
 
 from firefly.bss import BssDisplay
-from haven.instrument.aps import EpicsBssDevice
 
 
 @pytest.fixture()
 def bss_api(mocker):
     api = mocker.MagicMock()
-    api.getCurrentEsafs.return_value = [
+    api.listESAFs.return_value = [
         {
             "description": (
                 "We will perform some K-edge and L-edge XAFS measurements of "
@@ -75,7 +73,7 @@ def bss_api(mocker):
         }
     ]
 
-    api.getCurrentProposals.return_value = [
+    api.listProposals.return_value = [
         {
             "title": (
                 "A Partner User Proposal to Continue the Successful Collaboration"
@@ -136,10 +134,8 @@ def bss_api(mocker):
 
 
 @pytest.fixture()
-def bss(sim_registry):
-    bss = instantiate_fake_device(EpicsBssDevice, name="bss", prefix="255idc:bss:")
-    sim_registry.register(bss)
-    # Make sure the fake signals have reasonable values
+def bss(beamline_manager):
+    bss = beamline_manager.bss
     bss.proposal.mail_in_flag.sim_put(1)
     bss.proposal.proprietary_flag.sim_put(1)
     return bss
@@ -178,14 +174,13 @@ def test_bss_proposal_updating(qtbot, ffapp, bss_api, bss):
         qtbot.mouseClick(display.ui.update_proposal_button, Qt.LeftButton)
     pv_id = bss.proposal.proposal_id.get(use_monitor=False)
     assert pv_id == "74163"
-    bss_api.epicsUpdate.assert_called_once_with("255idc:bss:")
 
 
-def test_bss_proposals(ffapp, bss_api):
+def test_bss_proposals(ffapp, bss_api, bss):
     display = BssDisplay(api=bss_api)
     # Check values
-    api_proposal = bss_api.getCurrentProposals()[0]
-    proposals = display.proposals
+    api_proposal = bss_api.listProposals()[0]
+    proposals = display.proposals()
     proposal = proposals[0]
     assert proposal["Title"] == api_proposal["title"]
     assert proposal["ID"] == api_proposal["id"]
@@ -195,13 +190,15 @@ def test_bss_proposals(ffapp, bss_api):
     assert proposal["End"] == "2023-03-31 08:00:00-05:00"
 
 
-def test_bss_esaf_model(qtbot, ffapp, bss_api):
+def test_bss_esaf_model(qtbot, ffapp, bss_api, bss):
+    bss.proposal.beamline_name.set("255-ID-Z").wait()
+    bss.esaf.aps_cycle.set("3024-1").wait()
     display = BssDisplay(api=bss_api)
     assert display.ui_filename() == "bss.ui"
     # Check model construction
     assert isinstance(display.esaf_model, QStandardItemModel)
     # assert display.esaf_model.rowCount() > 0
-    bss_api.getCurrentEsafs.assert_called_once_with("255")
+    bss_api.listESAFs.assert_called_once_with("3024-1", "255")
     # Check that the view has the model attached
     assert display.ui.esaf_view.model() is display.esaf_model
 
@@ -227,15 +224,14 @@ def test_bss_esaf_updating(qtbot, ffapp, bss_api, bss):
         qtbot.mouseClick(display.ui.update_esaf_button, Qt.LeftButton)
     pv_id = bss.esaf.esaf_id.get(use_monitor=False)
     assert pv_id == "269238"
-    bss_api.epicsUpdate.assert_called_once_with("255idc:bss:")
 
 
 def test_bss_esafs(ffapp, bss_api, bss):
     display = BssDisplay(api=bss_api)
     # Check values
-    api_esaf = bss_api.getCurrentEsafs()[0]
+    api_esaf = bss_api.listESAFs()[0]
     esafs = display.esafs
-    esaf = esafs[0]
+    esaf = esafs()[0]
     assert esaf["Title"] == api_esaf["esafTitle"]
     assert esaf["ID"] == api_esaf["esafId"]
     assert esaf["Users"] == "Zhang, Chen, Motta Meira, Chen"

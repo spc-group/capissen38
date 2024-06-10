@@ -5,9 +5,12 @@ from haven.exceptions import ComponentNotFound, MultipleComponentsFound
 from haven.instrument import InstrumentRegistry
 
 
-def test_register_component():
-    # Prepare registry
-    reg = InstrumentRegistry(auto_register=False)
+@pytest.fixture()
+def reg():
+    yield InstrumentRegistry(auto_register=False)
+
+
+def test_register_component(reg):
     # Create an unregistered component
     cpt = sim.SynGauss(
         "I0",
@@ -33,9 +36,8 @@ def test_register_component():
     assert cpt in results
 
 
-def test_find_missing_components():
+def test_find_missing_components(reg):
     """Test that registry raises an exception if no matches are found."""
-    reg = InstrumentRegistry()
     cpt = sim.SynGauss(
         "I0",
         sim.motor,
@@ -51,27 +53,24 @@ def test_find_missing_components():
         reg.findall(label="spam")
 
 
-def test_find_allow_missing_components():
+def test_find_allow_missing_components(reg):
     """Test that registry tolerates missing components with the
     *allow_none* argument.
 
     """
-    reg = InstrumentRegistry()
     # Get some non-existent devices and check that the right nothing is returned
     assert list(reg.findall(label="spam", allow_none=True)) == []
     assert reg.find(name="eggs", allow_none=True) is None
 
 
-def test_exceptions():
-    reg = InstrumentRegistry()
+def test_exceptions(reg):
     reg.register(Device("", name="It"))
     # Test if a non-existent labels throws an exception
     with pytest.raises(ComponentNotFound):
         reg.find(label="spam")
 
 
-def test_as_class_decorator():
-    reg = InstrumentRegistry()
+def test_as_class_decorator(reg):
     # Create a dummy decorated class
     IonChamber = type("IonChamber", (Device,), {})
     IonChamber = reg.register(IonChamber)
@@ -83,9 +82,7 @@ def test_as_class_decorator():
     assert result.name == "I0"
 
 
-def test_find_component():
-    # Prepare registry
-    reg = InstrumentRegistry()
+def test_find_component(reg):
     # Create an unregistered component
     cptA = sim.SynGauss(
         "I0",
@@ -116,9 +113,7 @@ def test_find_component():
         result = reg.find(label="ion_chamber")
 
 
-def test_find_name_by_dot_notation():
-    # Prepare registry
-    reg = InstrumentRegistry()
+def test_find_name_by_dot_notation(reg):
     # Create a simulated component
     cptA = sim.SynGauss(
         "I0",
@@ -135,9 +130,7 @@ def test_find_name_by_dot_notation():
     assert result is cptA.val
 
 
-def test_find_labels_by_dot_notation():
-    # Prepare registry
-    reg = InstrumentRegistry()
+def test_find_labels_by_dot_notation(reg):
     # Create a simulated component
     cptA = sim.SynGauss(
         "I0",
@@ -154,9 +147,7 @@ def test_find_labels_by_dot_notation():
     assert result is cptA.val
 
 
-def test_find_any():
-    # Prepare registry
-    reg = InstrumentRegistry()
+def test_find_any(reg):
     # Create an unregistered component
     cptA = sim.SynGauss(
         "I0",
@@ -206,10 +197,8 @@ def test_find_any():
     assert cptD not in result
 
 
-def test_find_by_device():
+def test_find_by_device(reg):
     """The registry should just return the device itself if that's what is passed."""
-    # Prepare registry
-    reg = InstrumentRegistry()
     # Register a component
     cptD = sim.SynGauss(
         "sample motor",
@@ -226,10 +215,8 @@ def test_find_by_device():
     assert result is cptD
 
 
-def test_find_by_list_of_names():
+def test_find_by_list_of_names(reg):
     """Will the findall() method handle lists of things to look up."""
-    # Prepare registry
-    reg = InstrumentRegistry()
     # Register a component
     cptA = sim.SynGauss(
         "sample motor A",
@@ -268,13 +255,12 @@ def test_find_by_list_of_names():
     assert cptC not in result
 
 
-def test_user_readback():
+def test_user_readback(reg):
     """Edge case where EpicsMotor.user_readback is named the same as the motor itself."""
-    registry = InstrumentRegistry()
     device = EpicsMotor("", name="epics_motor")
-    registry.register(device)
+    reg.register(device)
     # See if requesting the device.user_readback returns the proper signal
-    registry.find("epics_motor_user_readback")
+    reg["epics_motor_user_readback"]
 
 
 # -----------------------------------------------------------------------------

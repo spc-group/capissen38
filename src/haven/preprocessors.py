@@ -6,13 +6,14 @@ import os
 import socket
 import warnings
 from collections import ChainMap
-from typing import Iterable, Sequence, Union
+from typing import Sequence, Union  # , Iterable
 
 import epics
 import pkg_resources
 from bluesky.preprocessors import baseline_wrapper as bluesky_baseline_wrapper
 from bluesky.preprocessors import finalize_wrapper, msg_mutator
-from bluesky.suspenders import SuspendBoolLow
+
+# from bluesky.suspenders import SuspendBoolLow
 from bluesky.utils import Msg, make_decorator
 
 from ._iconfig import load_config
@@ -153,11 +154,15 @@ def shutter_suspend_wrapper(plan, shutter_signals=None):
         shutter_signals = [s.pss_state for s in shutters]
     # Create a suspender for each shutter
     suspenders = []
-    for sig in shutter_signals:
-        suspender = SuspendBoolLow(sig, sleep=3.0)
-        suspenders.append(suspender)
-    if not isinstance(suspenders, Iterable):
-        suspenders = [suspenders]
+
+    ###################################################
+    # Temporarily disabled for technical commissioning
+    ###################################################
+    # for sig in shutter_signals:
+    #     suspender = SuspendBoolLow(sig, sleep=3.0)
+    #     suspenders.append(suspender)
+    # if not isinstance(suspenders, Iterable):
+    #     suspenders = [suspenders]
 
     def _install():
         for susp in suspenders:

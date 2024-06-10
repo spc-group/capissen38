@@ -1,0 +1,14 @@
+[Unit]
+Description=zookeeper
+After=syslog.target network.target
+
+[Service]
+Type=simple
+
+ExecStart=/local/s25staff/kafka/bin/zookeeper-server-start.sh %h/src/queueserver/zookeeper.properties
+ExecStop=/local/s25staff/kafka/bin/zookeeper-server-stop.sh
+# ExecStopPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:redis_state 1
+# ExecStartPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:redis_state 2
+
+[Install]
+WantedBy=multi-user.target

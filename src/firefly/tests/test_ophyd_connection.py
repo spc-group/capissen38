@@ -23,8 +23,6 @@ def sim_motor(sim_registry):
     FakeMotor = make_fake_device(HavenMotor)
     motor = FakeMotor("255idVME:m1", name="motor")
     motor.user_setpoint.sim_set_limits((0, 1000))
-    sim_registry.register(motor)
-
     return motor
 
 

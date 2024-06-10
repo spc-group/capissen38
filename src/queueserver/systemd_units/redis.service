@@ -1,0 +1,16 @@
+[Unit]
+Description=Redis persistent key-value database
+After=syslog.target network.target
+
+[Service]
+ExecStart=/usr/bin/redis-server --supervised systemd
+ExecStop=/usr/libexec/redis-shutdown
+Type=notify
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+# ExecStopPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:redis_state 1
+# ExecStartPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:redis_state 2
+
+[Install]
+WantedBy=multi-user.target
+

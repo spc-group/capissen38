@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from enum import IntEnum
 
@@ -6,7 +5,7 @@ from ophyd import Component as Cpt
 from ophyd import Device, EpicsMotor, EpicsSignal, EpicsSignalRO
 
 from .._iconfig import load_config
-from .device import aload_devices, make_device
+from .device import make_device
 
 log = logging.getLogger(__name__)
 
@@ -47,22 +46,19 @@ class Monochromator(Device):
     d_spacing = Cpt(EpicsSignalRO, ":dspacing", labels={"baseline"}, kind="config")
 
 
-def load_monochromator_coros(config=None):
+def load_monochromators(config=None):
     # Load PV's from config
     if config is None:
         config = load_config()
     # Guard to make sure there's at least one mono configuration
     if "monochromator" not in config.keys():
-        return
+        return []
     # Load mono device from configuration
     prefix = config["monochromator"]["ioc"]
-    yield make_device(
+    mono = make_device(
         Monochromator, name="monochromator", labels={"monochromators"}, prefix=prefix
     )
-
-
-def load_monochromator(config=None):
-    asyncio.run(aload_devices(*load_monochromator_coros(config=config)))
+    return [mono]
 
 
 # -----------------------------------------------------------------------------

@@ -1,19 +1,25 @@
-import display
+from ophyd.sim import motor1, motor2, motor3
+
+from haven import robot_transfer_sample
 
 
-class XafsScanRegionDisplay(display.FireflyDisplay):
-    def ui_filename(self):
-        return "xafs_scan_region.ui"
+def test_robot_sample(robot):
+    plan = robot_transfer_sample(robot, 9, motor1, 100, motor2, 200, motor3, 50)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        obj = self.ui
+    msgs = list(plan)
+
+    assert robot.name == "robotA"
+    assert len(msgs) == 14
+
+    unload = robot_transfer_sample(robot, None, motor1, 100)
+    msgs = list(unload)
+    assert len(msgs) == 6
 
 
 # -----------------------------------------------------------------------------
-# :author:    Mark Wolfman
-# :email:     wolfman@anl.gov
-# :copyright: Copyright © 2023, UChicago Argonne, LLC
+# :author:    Yanna Chen
+# :email:     yannachen@anl.gov
+# :copyright: Copyright © 2024, UChicago Argonne, LLC
 #
 # Distributed under the terms of the 3-Clause BSD License
 #

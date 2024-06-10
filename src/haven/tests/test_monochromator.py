@@ -1,10 +1,16 @@
-from haven import Monochromator
+from haven.instrument.monochromator import Monochromator, load_monochromators
 
 
 def test_mono_energy_signal():
     mono = Monochromator("255idMono", name="monochromator")
     # Check PVs are correct
     mono.energy.user_readback.pvname == "255idMono:Energy.RBV"
+
+
+def test_load_monochromators(sim_registry):
+    monos = load_monochromators()
+    assert len(monos) == 1
+    assert isinstance(monos[0], Monochromator)
 
 
 # -----------------------------------------------------------------------------

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import numpy as np
@@ -9,7 +8,7 @@ from ophyd import PseudoPositioner, PseudoSingle
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
 from .._iconfig import load_config
-from .device import aload_devices, make_device
+from .device import make_device
 
 log = logging.getLogger(__name__)
 
@@ -183,29 +182,26 @@ class LERIXSpectrometer(Device):
 #         return dev
 
 
-def load_lerix_spectrometer_coros(config=None):
-    """Create co-routines for creating/connecting the LERIX spectrometer
-    devices.
-
-    """
+def load_lerix_spectrometers(config=None):
+    """Create devices for the LERIX spectrometer."""
     if config is None:
         config = load_config()
     # Create spectrometers
+    devices = []
     for name, cfg in config.get("lerix", {}).items():
         rowland = cfg["rowland"]
-        yield make_device(
-            RowlandPositioner,
-            name=name,
-            x_motor_pv=rowland["x_motor_pv"],
-            y_motor_pv=rowland["y_motor_pv"],
-            z_motor_pv=rowland["z_motor_pv"],
-            z1_motor_pv=rowland["z1_motor_pv"],
-            labels={"lerix_spectromoters"},
+        devices.append(
+            make_device(
+                RowlandPositioner,
+                name=name,
+                x_motor_pv=rowland["x_motor_pv"],
+                y_motor_pv=rowland["y_motor_pv"],
+                z_motor_pv=rowland["z_motor_pv"],
+                z1_motor_pv=rowland["z1_motor_pv"],
+                labels={"lerix_spectromoters"},
+            )
         )
-
-
-def load_lerix_spectrometers(config=None):
-    asyncio.run(aload_devices(*load_lerix_spectrometer_coros(config=config)))
+    return devices
 
 
 # -----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import QListView
+from qtpy.QtWidgets import QAbstractItemView, QListView
 
 from haven import registry
 
@@ -10,6 +10,8 @@ class DetectorListView(QListView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_detector_items()
+        # Make it possible to select multiple detectors
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
     def load_detector_items(self):
         detectors = registry.findall(label="detectors", allow_none=True)

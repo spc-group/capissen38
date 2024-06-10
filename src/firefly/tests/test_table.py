@@ -24,7 +24,6 @@ def table(sim_registry):
         transforms="table_ds_trans:",
         labels={"tables"},
     )
-    sim_registry.register(tbl)
     return tbl
 
 
@@ -36,7 +35,6 @@ def empty_table(sim_registry):
         name="table",
         labels={"tables"},
     )
-    sim_registry.register(tbl)
     return tbl
 
 
@@ -65,7 +63,6 @@ def test_tilting_table_caqtdm(ffapp, sim_registry):
         pseudo_motors="table_ds:",
         name="table",
     )
-    sim_registry.register(table)
     display = TableDisplay(macros={"DEVICE": table.name})
     display._open_caqtdm_subprocess = mock.MagicMock()
     # Launch the caqtdm display
@@ -91,7 +88,6 @@ def test_tilting_table_caqtdm(ffapp, sim_registry):
 
 def test_single_motor_caqtdm(ffapp, sim_registry):
     table = FakeTable("255idcVME:", horizontal_motor="m3", name="table")
-    sim_registry.register(table)
     display = TableDisplay(macros={"DEVICE": table.name})
     display._open_caqtdm_subprocess = mock.MagicMock()
     # Launch the caqtdm display
@@ -114,7 +110,6 @@ def test_double_motor_caqtdm(ffapp, sim_registry):
     table = FakeTable(
         "255idcVME:", horizontal_motor="m3", vertical_motor="m4", name="table"
     )
-    sim_registry.register(table)
     display = TableDisplay(macros={"DEVICE": table.name})
     display._open_caqtdm_subprocess = mock.MagicMock()
     # Launch the caqtdm display

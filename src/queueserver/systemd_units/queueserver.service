@@ -1,0 +1,16 @@
+[Unit]
+Description=Bluesky Queue Server (25-ID-C)
+Wants=kafka.service
+After=kafka.service
+Requires=redis.service
+After=redis.service
+
+[Service]
+Environment="BLUESKY_DIR=%h/bluesky"
+ExecStart=/bin/bash -l -c 'micromamba activate haven && %h/src/queueserver/queueserver.sh'
+# ExecStopPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:queueserver_state 1
+# ExecStartPost=/APSshare/epics/base-7.0.7/bin/rhel8-x86_64/caput 100id:bluesky:queueserver_state 2
+
+[Install]
+WantedBy=default.target
+Alias=queueserver.service

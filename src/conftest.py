@@ -1,15 +1,14 @@
 import os
-import subprocess
 from pathlib import Path
 from unittest import mock
 
-import psutil
+import numpy as np
+import pandas as pd
 
 # from pydm.data_plugins import plugin_modules, add_plugin
-import pydm
 import pytest
-from bluesky import RunEngine
-from ophyd import DynamicDeviceComponent as DDC
+from apstools.devices.srs570_preamplifier import GainSignal
+from ophyd import DynamicDeviceComponent as DCpt
 from ophyd import Kind
 from ophyd.sim import (
     FakeEpicsSignal,
@@ -17,26 +16,36 @@ from ophyd.sim import (
     instantiate_fake_device,
     make_fake_device,
 )
-from pytestqt.qt_compat import qt_api
+from tiled.adapters.mapping import MapAdapter
+from tiled.adapters.xarray import DatasetAdapter
+from tiled.client import Context, from_context
+from tiled.server.app import build_app
 
 import haven
-from firefly.application import FireflyApplication
-from firefly.main_window import FireflyMainWindow
 from haven._iconfig import beamline_connected as _beamline_connected
+from haven.catalog import Catalog
 from haven.instrument.aerotech import AerotechStage
 from haven.instrument.aps import ApsMachine
+from haven.instrument.beamline_manager import BeamlineManager, IOCManager
 from haven.instrument.camera import AravisDetector
 from haven.instrument.delay import EpicsSignalWithIO
 from haven.instrument.dxp import DxpDetector
 from haven.instrument.dxp import add_mcas as add_dxp_mcas
 from haven.instrument.ion_chamber import IonChamber
+from haven.instrument.monochromator import Monochromator
+from haven.instrument.robot import Robot
 from haven.instrument.shutter import Shutter
 from haven.instrument.slits import ApertureSlits, BladeSlits
+from haven.instrument.xia_pfcu import PFCUFilter, PFCUFilterBank, PFCUShutter
 from haven.instrument.xspress import Xspress3Detector
 from haven.instrument.xspress import add_mcas as add_xspress_mcas
 
 top_dir = Path(__file__).parent.resolve()
 haven_dir = top_dir / "haven"
+
+
+def pytest_configure():
+    haven.registry.auto_register = False
 
 
 # Specify the configuration files to use for testing
@@ -57,7 +66,10 @@ class FakeEpicsSignalWithIO(FakeEpicsSignal):
         super().__init__(f"{prefix}I", write_pv=f"{prefix}O", **kwargs)
 
 
+# Ophyd uses a cache of signals and their corresponding fakes
+# We need to add ours in so they get simulated properly.
 fake_device_cache[EpicsSignalWithIO] = FakeEpicsSignalWithIO
+fake_device_cache[GainSignal] = FakeEpicsSignal
 
 
 @pytest.fixture()
@@ -66,89 +78,42 @@ def beamline_connected():
         yield
 
 
-class RunEngineStub(RunEngine):
-    def __repr__(self):
-        return "<run_engine.RunEngineStub>"
-
-
-@pytest.fixture()
-def RE(event_loop):
-    return RunEngineStub(call_returns_result=True)
-
-
-@pytest.fixture(scope="session")
-def qapp_cls():
-    return FireflyApplication
-
-
-# def pytest_configure(config):
-#     app = QtWidgets.QApplication.instance()
-#     assert app is None
-#     app = FireflyApplication()
-#     app = QtWidgets.QApplication.instance()
-#     assert isinstance(app, FireflyApplication)
-#     # # Create event loop for asyncio stuff
-#     # loop = asyncio.new_event_loop()
-#     # asyncio.set_event_loop(loop)
-
-
-def tiled_is_running(port, match_command=True):
-    lsof = subprocess.run(["lsof", "-i", f":{port}", "-F"], capture_output=True)
-    assert lsof.stderr.decode() == ""
-    stdout = lsof.stdout.decode().split("\n")
-    is_running = len(stdout) >= 3
-    if match_command:
-        is_running = is_running and stdout[3] == "ctiled"
-    return is_running
-
-
-def kill_process(process_name):
-    processes = []
-    for proc in psutil.process_iter():
-        # check whether the process name matches
-        if proc.name() == process_name:
-            proc.kill()
-            processes.append(proc)
-    # Wait for them all the terminate
-    [proc.wait(timeout=5) for proc in processes]
-
-
 @pytest.fixture()
 def sim_registry(monkeypatch):
-    # mock out Ophyd connections so devices can be created
-    modules = [
-        haven.instrument.ion_chamber,
-        haven.instrument.device,
-    ]
-    for mod in modules:
-        monkeypatch.setattr(mod, "await_for_connection", mock.AsyncMock())
-    monkeypatch.setattr(
-        haven.instrument.ion_chamber, "caget", mock.AsyncMock(return_value="I0")
-    )
     # Save the registry so we can restore it later
     registry = haven.registry
-    use_typhos = registry.use_typhos
     objects_by_name = registry._objects_by_name
     objects_by_label = registry._objects_by_label
     registry.clear()
+    registry.auto_register = True
     # Run the test
     try:
         yield registry
     finally:
         # Restore the previous registry components
-        registry.clear(clear_typhos=True)
+        registry.auto_register = False
+        registry.clear()
         registry._objects_by_name = objects_by_name
         registry._objects_by_label = objects_by_label
-        registry.use_typhos = use_typhos
 
 
 @pytest.fixture()
 def sim_ion_chamber(sim_registry):
     FakeIonChamber = make_fake_device(IonChamber)
     ion_chamber = FakeIonChamber(
-        prefix="scaler_ioc", name="I00", labels={"ion_chambers"}, ch_num=2
+        prefix="scaler_ioc",
+        name="I00",
+        labels={"ion_chambers"},
+        ch_num=2,
     )
-    sim_registry.register(ion_chamber)
+    # Set metadata
+    preamp = ion_chamber.preamp
+    preamp.sensitivity_value._enum_strs = tuple(preamp.values)
+    preamp.sensitivity_unit._enum_strs = tuple(preamp.units)
+    preamp.offset_value._enum_strs = tuple(preamp.values)
+    preamp.offset_unit._enum_strs = tuple(preamp.offset_units)
+    preamp.gain_mode._enum_strs = ("LOW NOISE", "HIGH BW", "LOW DRIFT")
+    preamp.gain_mode.set("LOW NOISE").wait(timeout=3)
     return ion_chamber
 
 
@@ -163,7 +128,6 @@ def I0(sim_registry):
         labels={"ion_chambers"},
         ch_num=2,
     )
-    sim_registry.register(ion_chamber)
     return ion_chamber
 
 
@@ -174,7 +138,6 @@ def It(sim_registry):
     ion_chamber = FakeIonChamber(
         prefix="scaler_ioc", name="It", labels={"ion_chambers"}, ch_num=3
     )
-    sim_registry.register(ion_chamber)
     return ion_chamber
 
 
@@ -183,8 +146,34 @@ def blade_slits(sim_registry):
     """A fake set of slits using the 4-blade setup."""
     FakeSlits = make_fake_device(BladeSlits)
     slits = FakeSlits(prefix="255idc:KB_slits", name="kb_slits", labels={"slits"})
-    sim_registry.register(slits)
     return slits
+
+
+class SimpleBeamlineManager(BeamlineManager):
+    """For a fake class, we need to un-override __new__ to just make
+    itself.
+
+    """
+
+    iocs = DCpt(
+        {
+            "ioc255idb": (IOCManager, "ioc255idb:", {}),
+            "ioc255idc": (IOCManager, "ioc255idc:", {}),
+        }
+    )
+
+    def __new__(cls, *args, **kwargs):
+        return object.__new__(cls)
+
+
+@pytest.fixture()
+def beamline_manager(sim_registry):
+    """A fake set of slits using the 4-blade setup."""
+    FakeManager = make_fake_device(SimpleBeamlineManager)
+    manager = FakeManager(
+        prefix="companionCube:", name="companion_cube", labels={"beamline_manager"}
+    )
+    return manager
 
 
 @pytest.fixture()
@@ -200,7 +189,6 @@ def aperture_slits(sim_registry):
         diagonal_motor="m2",
         labels={"slits"},
     )
-    sim_registry.register(slits)
     return slits
 
 
@@ -210,12 +198,11 @@ def sim_camera(sim_registry):
     camera = FakeCamera(name="s255id-gige-A", labels={"cameras", "area_detectors"})
     camera.pva.pv_name._readback = "255idSimDet:Pva1:Image"
     # Registry with the simulated registry
-    sim_registry.register(camera)
     yield camera
 
 
 class DxpVortex(DxpDetector):
-    mcas = DDC(
+    mcas = DCpt(
         add_dxp_mcas(range_=[0, 1, 2, 3]),
         kind=Kind.normal | Kind.hinted,
         default_read_attrs=[f"mca{i}" for i in [0, 1, 2, 3]],
@@ -227,13 +214,12 @@ class DxpVortex(DxpDetector):
 def dxp(sim_registry):
     FakeDXP = make_fake_device(DxpVortex)
     vortex = FakeDXP(name="vortex_me4", labels={"xrf_detectors", "detectors"})
-    sim_registry.register(vortex)
     # vortex.net_cdf.dimensions.set([1477326, 1, 1])
     yield vortex
 
 
 class Xspress3Vortex(Xspress3Detector):
-    mcas = DDC(
+    mcas = DCpt(
         add_xspress_mcas(range_=[0, 1, 2, 3]),
         kind=Kind.normal | Kind.hinted,
         default_read_attrs=[f"mca{i}" for i in [0, 1, 2, 3]],
@@ -245,7 +231,6 @@ class Xspress3Vortex(Xspress3Detector):
 def xspress(sim_registry):
     FakeXspress = make_fake_device(Xspress3Vortex)
     vortex = FakeXspress(name="vortex_me4", labels={"xrf_detectors"})
-    sim_registry.register(vortex)
     yield vortex
 
 
@@ -265,6 +250,13 @@ def aerotech():
 
 
 @pytest.fixture()
+def robot():
+    RobotClass = make_fake_device(Robot)
+    robot = RobotClass(name="robotA", prefix="255idA:")
+    return robot
+
+
+@pytest.fixture()
 def aerotech_flyer(aerotech):
     flyer = aerotech.horiz
     flyer.user_setpoint._limits = (0, 1000)
@@ -273,10 +265,41 @@ def aerotech_flyer(aerotech):
 
 
 @pytest.fixture()
+def mono(sim_registry):
+    mono = instantiate_fake_device(Monochromator, name="monochromator")
+    yield mono
+
+
+@pytest.fixture()
 def aps(sim_registry):
     aps = instantiate_fake_device(ApsMachine, name="APS")
-    sim_registry.register(aps)
     yield aps
+
+
+@pytest.fixture()
+def xia_shutter_bank(sim_registry):
+    class ShutterBank(PFCUFilterBank):
+        shutters = DCpt(
+            {
+                "shutter_0": (
+                    PFCUShutter,
+                    "",
+                    {"top_filter": 4, "bottom_filter": 3, "labels": {"shutters"}},
+                )
+            }
+        )
+
+        def __new__(cls, *args, **kwargs):
+            return object.__new__(cls)
+
+    FakeBank = make_fake_device(ShutterBank)
+    bank = FakeBank(prefix="255id:pfcu4:", name="xia_filter_bank", shutters=[[3, 4]])
+    yield bank
+
+
+@pytest.fixture()
+def xia_shutter(xia_shutter_bank):
+    yield xia_shutter_bank.shutters.shutter_0
 
 
 @pytest.fixture()
@@ -293,74 +316,149 @@ def shutters(sim_registry):
         FakeShutter(name="Shutter A", **kw),
         FakeShutter(name="Shutter C", **kw),
     ]
-    # Registry with the simulated registry
-    for shutter in shutters:
-        sim_registry.register(shutter)
     yield shutters
 
 
-@pytest.fixture(scope="session")
-def pydm_ophyd_plugin():
-    return pydm.data_plugins.plugin_for_address("haven://")
-
-
-qs_status = {
-    "msg": "RE Manager v0.0.18",
-    "items_in_queue": 0,
-    "items_in_history": 0,
-    "running_item_uid": None,
-    "manager_state": "idle",
-    "queue_stop_pending": False,
-    "worker_environment_exists": False,
-    "worker_environment_state": "closed",
-    "worker_background_tasks": 0,
-    "re_state": None,
-    "pause_pending": False,
-    "run_list_uid": "4f2d48cc-980d-4472-b62b-6686caeb3833",
-    "plan_queue_uid": "2b99ccd8-f69b-4a44-82d0-947d32c5d0a2",
-    "plan_history_uid": "9af8e898-0f00-4e7a-8d97-0964c8d43f47",
-    "devices_existing_uid": "51d8b88d-7457-42c4-b67f-097b168be96d",
-    "plans_existing_uid": "65f11f60-0049-46f5-9eb3-9f1589c4a6dd",
-    "devices_allowed_uid": "a5ddff29-917c-462e-ba66-399777d2442a",
-    "plans_allowed_uid": "d1e907cd-cb92-4d68-baab-fe195754827e",
-    "plan_queue_mode": {"loop": False},
-    "task_results_uid": "159e1820-32be-4e01-ab03-e3478d12d288",
-    "lock_info_uid": "c7fe6f73-91fc-457d-8db0-dfcecb2f2aba",
-    "lock": {"environment": False, "queue": False},
-}
-
-
-@pytest.fixture(scope="session")
-def ffapp(pydm_ophyd_plugin, qapp_cls, qapp_args, pytestconfig):
-    # Get an instance of the application
-    app = qt_api.QtWidgets.QApplication.instance()
-    if app is None:
-        # New Application
-        global _ffapp_instance
-        _ffapp_instance = qapp_cls(qapp_args)
-        app = _ffapp_instance
-        name = pytestconfig.getini("qt_qapp_name")
-        app.setApplicationName(name)
-    # Make sure there's at least one Window, otherwise things get weird
-    if getattr(app, "_dummy_main_window", None) is None:
-        # Set up the actions and other boildplate stuff
-        app.setup_window_actions()
-        app.setup_runengine_actions()
-        app._dummy_main_window = FireflyMainWindow()
-    # Sanity check to make sure a QApplication was not created by mistake
-    assert isinstance(app, FireflyApplication)
-    # Yield the finalized application object
-    try:
-        yield app
-    finally:
-        if hasattr(app, "_queue_thread"):
-            app._queue_thread.quit()
-            app._queue_thread.wait(msecs=5000)
+@pytest.fixture()
+def filters(sim_registry):
+    FakeFilter = make_fake_device(PFCUFilter)
+    kw = {
+        "labels": {"filters"},
+    }
+    filters = [
+        FakeFilter(name="Filter A", prefix="filter1", **kw),
+        FakeFilter(name="Filter B", prefix="filter2", **kw),
+    ]
+    return filters
 
 
 # holds a global QApplication instance created in the qapp fixture; keeping
 # this reference alive avoids it being garbage collected too early
 _ffapp_instance = None
+
+
+# Tiled data to use for testing
+# Some mocked test data
+run1 = pd.DataFrame(
+    {
+        "energy_energy": np.linspace(8300, 8400, num=100),
+        "It_net_counts": np.abs(np.sin(np.linspace(0, 4 * np.pi, num=100))),
+        "I0_net_counts": np.linspace(1, 2, num=100),
+    }
+).to_xarray()
+
+grid_scan = pd.DataFrame(
+    {
+        "CdnIPreKb": np.linspace(0, 104, num=105),
+        "It_net_counts": np.linspace(0, 104, num=105),
+        "aerotech_horiz": np.linspace(0, 104, num=105),
+        "aerotech_vert": np.linspace(0, 104, num=105),
+    }
+).to_xarray()
+
+hints = {
+    "energy": {"fields": ["energy_energy", "energy_id_energy_readback"]},
+}
+
+bluesky_mapping = {
+    "7d1daf1d-60c7-4aa7-a668-d1cd97e5335f": MapAdapter(
+        {
+            "primary": MapAdapter(
+                {
+                    "data": DatasetAdapter.from_dataset(run1),
+                },
+                metadata={"descriptors": [{"hints": hints}]},
+            ),
+        },
+        metadata={
+            "plan_name": "xafs_scan",
+            "start": {
+                "plan_name": "xafs_scan",
+                "uid": "7d1daf1d-60c7-4aa7-a668-d1cd97e5335f",
+                "hints": {"dimensions": [[["energy_energy"], "primary"]]},
+            },
+        },
+    ),
+    "9d33bf66-9701-4ee3-90f4-3be730bc226c": MapAdapter(
+        {
+            "primary": MapAdapter(
+                {
+                    "data": DatasetAdapter.from_dataset(run1),
+                },
+                metadata={"descriptors": [{"hints": hints}]},
+            ),
+        },
+        metadata={
+            "start": {
+                "plan_name": "rel_scan",
+                "uid": "9d33bf66-9701-4ee3-90f4-3be730bc226c",
+                "hints": {"dimensions": [[["pitch2"], "primary"]]},
+            }
+        },
+    ),
+    # 2D grid scan map data
+    "85573831-f4b4-4f64-b613-a6007bf03a8d": MapAdapter(
+        {
+            "primary": MapAdapter(
+                {
+                    "data": DatasetAdapter.from_dataset(grid_scan),
+                },
+                metadata={
+                    "descriptors": [
+                        {
+                            "hints": {
+                                "Ipreslit": {"fields": ["Ipreslit_net_counts"]},
+                                "CdnIPreKb": {"fields": ["CdnIPreKb_net_counts"]},
+                                "I0": {"fields": ["I0_net_counts"]},
+                                "CdnIt": {"fields": ["CdnIt_net_counts"]},
+                                "aerotech_vert": {"fields": ["aerotech_vert"]},
+                                "aerotech_horiz": {"fields": ["aerotech_horiz"]},
+                                "Ipre_KB": {"fields": ["Ipre_KB_net_counts"]},
+                                "CdnI0": {"fields": ["CdnI0_net_counts"]},
+                                "It": {"fields": ["It_net_counts"]},
+                            }
+                        }
+                    ]
+                },
+            ),
+        },
+        metadata={
+            "start": {
+                "plan_name": "grid_scan",
+                "uid": "85573831-f4b4-4f64-b613-a6007bf03a8d",
+                "hints": {
+                    "dimensions": [
+                        [["aerotech_vert"], "primary"],
+                        [["aerotech_horiz"], "primary"],
+                    ],
+                    "gridding": "rectilinear",
+                },
+                "shape": [5, 21],
+                "extents": [[-80, 80], [-100, 100]],
+            },
+        },
+    ),
+}
+
+
+mapping = {
+    "255id_testing": MapAdapter(bluesky_mapping),
+}
+
+tree = MapAdapter(mapping)
+
+
+@pytest.fixture(scope="session")
+def tiled_client():
+    app = build_app(tree)
+    with Context.from_app(app) as context:
+        client = from_context(context)
+        yield client["255id_testing"]
+
+
+@pytest.fixture(scope="session")
+def catalog(tiled_client):
+    return Catalog(client=tiled_client)
 
 
 # -----------------------------------------------------------------------------

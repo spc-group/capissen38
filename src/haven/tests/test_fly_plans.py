@@ -276,7 +276,7 @@ def test_fly_grid_scan(aerotech_flyer):
     assert flyer_end_positions == [30, -20, 30, -20, 30, -20, 30, -20, 30, -20, 30]
 
 
-def test_fly_grid_scan_metadata(aerotech_flyer, sim_ion_chamber):
+def test_fly_grid_scan_metadata(sim_registry, aerotech_flyer, sim_ion_chamber):
     """Does the plan set the parameters of the flyer motor."""
     flyer = aerotech_flyer
     stepper = sim.motor

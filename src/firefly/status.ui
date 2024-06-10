@@ -22,6 +22,9 @@
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <layout class="QFormLayout" name="beamline_layout">
+        <property name="labelAlignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
         <property name="formAlignment">
          <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
         </property>
@@ -159,6 +162,20 @@
           <property name="channel" stdset="0">
            <string>ca://ACIS:ShutterPermit</string>
           </property>
+          <property name="onColor" stdset="0">
+           <color>
+            <red>212</red>
+            <green>237</green>
+            <blue>218</blue>
+           </color>
+          </property>
+          <property name="offColor" stdset="0">
+           <color>
+            <red>235</red>
+            <green>241</green>
+            <blue>181</blue>
+           </color>
+          </property>
           <property name="showLabels" stdset="0">
            <bool>true</bool>
           </property>
@@ -218,7 +235,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="shutter_A_layout">
           <item>
            <widget class="PyDMByteIndicator" name="FES_state_indicator">
             <property name="sizePolicy">
@@ -308,7 +325,7 @@
          </layout>
         </item>
         <item row="4" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="shutter_CD_layout">
           <item>
            <widget class="PyDMByteIndicator" name="SCDS_state_indicator">
             <property name="enabled">
@@ -447,7 +464,7 @@
              <string>746328</string>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_proposal_proposal_id</string>
+             <string>haven://beamline_manager.bss.proposal.proposal_id</string>
             </property>
            </widget>
           </item>
@@ -469,7 +486,7 @@
              <bool>true</bool>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_proposal_title</string>
+             <string>haven://beamline_manager.bss.proposal.title</string>
             </property>
             <property name="displayFormat" stdset="0">
              <enum>PyDMLabel::String</enum>
@@ -499,7 +516,7 @@
              <string>5564987</string>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_esaf_esaf_id</string>
+             <string>haven://beamline_manager.bss.esaf.esaf_id</string>
             </property>
            </widget>
           </item>
@@ -521,7 +538,7 @@
              <bool>true</bool>
             </property>
             <property name="channel" stdset="0">
-             <string>haven://bss_esaf_title</string>
+             <string>haven://beamline_manager.bss.esaf.title</string>
             </property>
             <property name="displayFormat" stdset="0">
              <enum>PyDMLabel::String</enum>
@@ -546,7 +563,7 @@
            <string>Franklin, Watson, Crick</string>
           </property>
           <property name="channel" stdset="0">
-           <string>haven://bss_esaf_user_last_names</string>
+           <string>haven://beamline_manager.bss.esaf.user_last_names</string>
           </property>
           <property name="displayFormat" stdset="0">
            <enum>PyDMLabel::String</enum>
@@ -569,7 +586,7 @@
            <string>1901-01-01 8:00:00</string>
           </property>
           <property name="channel" stdset="0">
-           <string>haven://bss_esaf_end_date</string>
+           <string>haven://beamline_manager.bss.esaf.end_date</string>
           </property>
          </widget>
         </item>

@@ -49,7 +49,7 @@
       <string>######</string>
      </property>
      <property name="channel" stdset="0">
-      <string>ca://${IOC}status</string>
+      <string>haven://${IOC}.status</string>
      </property>
      <property name="displayFormat" stdset="0">
       <enum>PyDMLabel::String</enum>
@@ -65,16 +65,52 @@
       <string>Start</string>
      </property>
      <property name="rules" stdset="0">
-      <string>[{&quot;name&quot;: &quot;Can be started?&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;False&quot;, &quot;expression&quot;: &quot;ch[0] == \&quot;Stopped\&quot; and ch[1] == \&quot;On\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;ca://${IOC}status&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;ca://${IOC}startable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+      <string>[{&quot;name&quot;: &quot;Can be started?&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;False&quot;, &quot;expression&quot;: &quot;ch[0] == \&quot;Stopped\&quot; and ch[1] == \&quot;On\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;haven://${IOC}.status&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;haven://${IOC}.startable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+     </property>
+     <property name="alarmSensitiveContent" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="alarmSensitiveBorder" stdset="0">
+      <bool>false</bool>
      </property>
      <property name="PyDMToolTip" stdset="0">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start IOC ${NAME} (${IOC}) if it is not running.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Requires that the PV &lt;span style=&quot; font-style:italic;&quot;&gt;${IOC}startable&lt;/span&gt; is true.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
+     <property name="monitorDisp" stdset="0">
+      <bool>false</bool>
+     </property>
      <property name="channel" stdset="0">
-      <string>ca://${IOC}start</string>
+      <string>haven://${IOC}.start_ioc</string>
+     </property>
+     <property name="PyDMIcon" stdset="0">
+      <string/>
+     </property>
+     <property name="passwordProtected" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="password" stdset="0">
+      <string/>
+     </property>
+     <property name="protectedPassword" stdset="0">
+      <string/>
+     </property>
+     <property name="showConfirmDialog" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="confirmMessage" stdset="0">
+      <string>Are you sure you want to proceed?</string>
      </property>
      <property name="pressValue" stdset="0">
       <string>1</string>
+     </property>
+     <property name="releaseValue" stdset="0">
+      <string>None</string>
+     </property>
+     <property name="relativeChange" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="writeWhenRelease" stdset="0">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -87,7 +123,7 @@
       <string>Stop</string>
      </property>
      <property name="rules" stdset="0">
-      <string>[{&quot;name&quot;: &quot;Can be stopped?&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;False&quot;, &quot;expression&quot;: &quot;ch[0] == \&quot;Running\&quot; and ch[1] == \&quot;On\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;ca://${IOC}status&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;ca://${IOC}stoppable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+      <string>[{&quot;name&quot;: &quot;Can be stopped?&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;False&quot;, &quot;expression&quot;: &quot;ch[0] == \&quot;Running\&quot; and ch[1] == \&quot;On\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;haven://${IOC}.status&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;haven://${IOC}.stoppable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
      </property>
      <property name="alarmSensitiveContent" stdset="0">
       <bool>false</bool>
@@ -102,7 +138,7 @@
       <bool>false</bool>
      </property>
      <property name="channel" stdset="0">
-      <string>ca://${IOC}stop</string>
+      <string>haven://${IOC}.stop_ioc</string>
      </property>
      <property name="PyDMIcon" stdset="0">
       <string/>
@@ -145,13 +181,34 @@
       <string>Restart</string>
      </property>
      <property name="rules" stdset="0">
-      <string>[{&quot;name&quot;: &quot;Can be restarted?&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;False&quot;, &quot;expression&quot;: &quot;ch[0] == \&quot;Running\&quot; and ch[1] == \&quot;On\&quot; and ch[2] == \&quot;On\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;ca://${IOC}status&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;ca://${IOC}startable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;ca://${IOC}stoppable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+      <string>[{&quot;name&quot;: &quot;Can be restarted?&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;False&quot;, &quot;expression&quot;: &quot;ch[0] == \&quot;Running\&quot; and ch[1] == \&quot;On\&quot; and ch[2] == \&quot;On\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;haven://${IOC}.status&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;haven://${IOC}.startable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}, {&quot;channel&quot;: &quot;haven://${IOC}.stoppable&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+     </property>
+     <property name="alarmSensitiveContent" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="alarmSensitiveBorder" stdset="0">
+      <bool>false</bool>
      </property>
      <property name="PyDMToolTip" stdset="0">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Stop and then start IOC ${NAME} (${IOC}) if it is running.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Requires that the PVs &lt;span style=&quot; font-style:italic;&quot;&gt;${IOC}stoppable&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;${IOC}startable&lt;/span&gt; are both true.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
+     <property name="monitorDisp" stdset="0">
+      <bool>false</bool>
+     </property>
      <property name="channel" stdset="0">
-      <string>ca://${IOC}restart</string>
+      <string>haven://${IOC}.restart_ioc</string>
+     </property>
+     <property name="PyDMIcon" stdset="0">
+      <string/>
+     </property>
+     <property name="passwordProtected" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="password" stdset="0">
+      <string/>
+     </property>
+     <property name="protectedPassword" stdset="0">
+      <string/>
      </property>
      <property name="showConfirmDialog" stdset="0">
       <bool>true</bool>
@@ -161,6 +218,15 @@
      </property>
      <property name="pressValue" stdset="0">
       <string>1</string>
+     </property>
+     <property name="releaseValue" stdset="0">
+      <string>None</string>
+     </property>
+     <property name="relativeChange" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="writeWhenRelease" stdset="0">
+      <bool>false</bool>
      </property>
     </widget>
    </item>

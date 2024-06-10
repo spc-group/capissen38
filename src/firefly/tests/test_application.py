@@ -3,25 +3,16 @@ from unittest.mock import MagicMock
 import pytest
 from ophyd import Device
 from ophyd.sim import make_fake_device
+from ophydregistry import Registry
+
+import firefly
+from firefly.queue_client import QueueClient
 
 
-def test_setup(ffapp):
+def test_prepare_queue_client(ffapp):
     api = MagicMock()
-    try:
-        ffapp.prepare_queue_client(api=api)
-    finally:
-        ffapp._queue_thread.quit()
-        ffapp._queue_thread.wait(msecs=5000)
-
-
-def test_setup2(ffapp):
-    """Verify that multiple tests can use the app without crashing."""
-    api = MagicMock()
-    try:
-        ffapp.prepare_queue_client(api=api)
-    finally:
-        ffapp._queue_thread.quit()
-        ffapp._queue_thread.wait(msecs=5000)
+    ffapp.prepare_queue_client(api=api)
+    assert isinstance(ffapp._queue_client, QueueClient)
 
 
 def test_queue_actions_enabled(ffapp, qtbot):
@@ -69,16 +60,17 @@ def test_queue_actions_enabled(ffapp, qtbot):
         ffapp.queue_re_state_changed.emit(None)
 
 
-@pytest.mark.xfail
 def test_prepare_queue_client(ffapp):
-    assert False, "Write tests for prepare_queue_client."
+    api = MagicMock()
+    ffapp.prepare_queue_client(api=api)
+    # Check that a timer was created
+    assert isinstance(ffapp._queue_client, QueueClient)
 
 
 @pytest.fixture()
 def tardis(sim_registry):
     Tardis = make_fake_device(Device)
     tardis = Tardis(name="my_tardis", labels={"tardis"})
-    sim_registry.register(tardis)
     return tardis
 
 
@@ -125,6 +117,20 @@ def test_prepare_device_specific_windows(ffapp, tardis):
     )
     # Check that there's a dictionary to keep track of open windows
     assert hasattr(ffapp, "tardis_windows")
+
+
+def test_load_instrument_registry(ffapp, qtbot, monkeypatch):
+    """Check that the instrument registry gets created."""
+    assert isinstance(ffapp.registry, Registry)
+    # Mock the underlying haven instrument loader
+    loader = MagicMock()
+    monkeypatch.setattr(firefly.application, "load_haven_instrument", loader)
+    monkeypatch.setattr(ffapp, "prepare_queue_client", MagicMock())
+    # Reload the devices and see if the registry is changed
+    with qtbot.waitSignal(ffapp.registry_changed):
+        ffapp.setup_instrument(load_instrument=True)
+    # Make sure we loaded the instrument
+    assert loader.called
 
 
 # -----------------------------------------------------------------------------

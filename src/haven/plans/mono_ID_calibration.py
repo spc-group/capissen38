@@ -99,7 +99,6 @@ def mono_ID_calibration(
             results_df = pd.concat(
                 [results_df, pd.DataFrame([new_row])], ignore_index=True
             )
-        print(results_df)
     # Fit the overall mono-ID calibration curve
     if fit_model is None:
         fit_model = QuadraticModel(nan_policy="omit")
@@ -111,10 +110,8 @@ def mono_ID_calibration(
     except Exception as e:
         log.warning(str(e))
         warnings.warn(str(e))
-        print(fit_model, results_df)
     else:
         fit_model.fit_result = fit
-        print(fit_model, fit, results_df)
     fit_model.results_df = results_df
 
 

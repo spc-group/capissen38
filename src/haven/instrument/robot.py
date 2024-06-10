@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from ophyd import Component as Cpt
@@ -7,16 +6,60 @@ from ophyd import DynamicDeviceComponent as DCpt
 from ophyd import EpicsMotor, EpicsSignal, EpicsSignalRO
 
 from .._iconfig import load_config
-from .device import aload_devices, make_device
+from .device import make_device
 
 log = logging.getLogger(__name__)
 
 
+LOAD_TIMEOUT = 40
+
+
 class Sample(Device):
+    """An individual robot sample that can be loaded.
+
+    Signals
+    =======
+    present
+      Whether or not a sample is physically present on the stage.
+    empty
+      Whether or not no sample is physically present on the stage.
+    load
+      Direct the robot to physically move this sample to the loading
+      position. Can be slow (~25-30 seconds).
+    unload
+      Direct the robot to physically remove this sample to the loading
+      position. Can be slow (~25-30 seconds).
+    x
+      The x position of the robot in Cartesian coordinates.
+    y
+      The y position of the robot in Cartesian coordinates.
+    z
+      The z position of the robot in Cartesian coordinates.
+    rx
+      The rx position of the robot in Cartesian coordinates.
+    ry
+      The ry position of the robot in Cartesian coordinates.
+    rz
+      The position of the robot in Cartesian coordinates.
+
+    """
+
     present = Cpt(EpicsSignalRO, ":present")
     empty = Cpt(EpicsSignalRO, ":empty")
-    load = Cpt(EpicsSignal, ":load", kind="omitted")
-    unload = Cpt(EpicsSignal, ":unload", kind="omitted")
+    load = Cpt(
+        EpicsSignal,
+        ":load",
+        kind="omitted",
+        write_timeout=LOAD_TIMEOUT,
+        put_complete=True,
+    )
+    unload = Cpt(
+        EpicsSignal,
+        ":unload",
+        kind="omitted",
+        write_timeout=LOAD_TIMEOUT,
+        put_complete=True,
+    )
     x = Cpt(EpicsSignalRO, ":x")
     y = Cpt(EpicsSignalRO, ":y")
     z = Cpt(EpicsSignalRO, ":z")
@@ -94,7 +137,13 @@ class Robot(Device):
 
     # sample transfer
     current_sample = Cpt(EpicsSignalRO, ":current_sample", kind="config")
-    unload_current_sample = Cpt(EpicsSignal, ":unload_current_sample", kind="omitted")
+    unload_current_sample = Cpt(
+        EpicsSignal,
+        ":unload_current_sample",
+        kind="omitted",
+        write_timeout=LOAD_TIMEOUT,
+        put_complete=True,
+    )
     current_sample_reset = Cpt(EpicsSignal, ":current_sample_reset", kind="omitted")
     home = Cpt(EpicsSignal, ":home", kind="config")
     cal_stage = Cpt(EpicsSignal, ":cal_stage", kind="config")
@@ -102,19 +151,18 @@ class Robot(Device):
     samples = DCpt(transfer_samples(24))
 
 
-def load_robot_coros(config=None):
+def load_robots(config=None):
     # Load PV's from config
     if config is None:
         config = load_config()
-    robots = config.get("robot")
-
-    if robots is not None:
-        for name, cfg in robots.items():
-            yield make_device(Robot, name=name, labels={"robots"}, prefix=cfg["prefix"])
-
-
-def load_robot(config=None):
-    return asyncio.run(aload_devices(*load_robot_coros(config=config)))
+    # Build robot devices
+    robots = config.get("robot", {})
+    devices = []
+    for name, cfg in robots.items():
+        devices.append(
+            make_device(Robot, name=name, labels={"robots"}, prefix=cfg["prefix"])
+        )
+    return devices
 
 
 # -----------------------------------------------------------------------------

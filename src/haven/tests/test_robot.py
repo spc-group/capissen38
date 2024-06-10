@@ -1,7 +1,7 @@
 import pytest
 from ophydregistry.exceptions import ComponentNotFound
 
-from haven.instrument import Robot, load_robot
+from haven.instrument import Robot, load_robots
 
 
 def test_robot():
@@ -13,7 +13,7 @@ def test_robot():
 
 
 def test_load_robot(sim_registry):
-    load_robot()
+    load_robots()
     # Test the robot info is extracted properly
     rbt = sim_registry.find(label="robots")
     assert rbt.name == "A"
@@ -21,7 +21,7 @@ def test_load_robot(sim_registry):
 
 
 def test_load_no_robot(sim_registry):
-    load_robot(config={})
+    load_robots(config={})
 
     # Test the robot is not in config
     result = pytest.raises(ComponentNotFound, sim_registry.findall, label="robots")

@@ -23,7 +23,7 @@ class QueueButton(QtWidgets.QPushButton):
             self.setDisabled(True)
         # Coloration for the whether the item would get run immediately
         app = FireflyApplication.instance()
-        if status["re_state"] == "idle" and app.queue_autoplay_action.isChecked():
+        if status["re_state"] == "idle" and app.queue_autostart_action.isChecked():
             # Will play immediately
             self.setStyleSheet(
                 "background-color: rgb(25, 135, 84);\nborder-color: rgb(25, 135, 84);"

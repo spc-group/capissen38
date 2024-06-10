@@ -1,6 +1,5 @@
 """This is a copy of the apstools Slits support with signals for the tweak PV."""
 
-import asyncio
 import logging
 
 from apstools.devices import PVPositionerSoftDone
@@ -11,7 +10,7 @@ from ophyd import FormattedComponent as FCpt
 
 from .. import exceptions
 from .._iconfig import load_config
-from .device import aload_devices, make_device
+from .device import make_device
 from .motor import HavenMotor
 
 log = logging.getLogger(__name__)
@@ -133,10 +132,11 @@ class ApertureSlits(Device):
     )
 
 
-def load_slit_coros(config=None):
+def load_slits(config=None):
     if config is None:
         config = load_config()
     # Create slits
+    devices = []
     for name, slit_config in config.get("slits", {}).items():
         DeviceClass = globals().get(slit_config["device_class"])
         prefix = slit_config["prefix"]
@@ -161,17 +161,16 @@ def load_slit_coros(config=None):
                 msg = f"Missing motors for slits.{name}.device_class={slit_config['device_class']}"
                 raise exceptions.UnknownDeviceConfiguration(msg)
         # Create the device
-        yield make_device(
-            DeviceClass,
-            prefix=prefix,
-            name=name,
-            labels={"slits"},
-            **motors,
+        devices.append(
+            make_device(
+                DeviceClass,
+                prefix=prefix,
+                name=name,
+                labels={"slits"},
+                **motors,
+            )
         )
-
-
-def load_slits(config=None):
-    asyncio.run(aload_devices(*load_slit_coros(config=config)))
+    return devices
 
 
 # -----------------------------------------------------------------------------

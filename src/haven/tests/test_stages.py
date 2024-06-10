@@ -23,6 +23,12 @@ def test_stage_init():
     assert len(list(registry.findall(label="stages"))) == 1
 
 
+def test_load_stages(sim_registry):
+    stages = stage.load_stages()
+    assert len(stages) == 1
+    assert isinstance(stages[0], stage.XYStage)
+
+
 # -----------------------------------------------------------------------------
 # :author:    Mark Wolfman
 # :email:     wolfman@anl.gov

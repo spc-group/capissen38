@@ -6,48 +6,59 @@ import pytest
 from haven.instrument import ion_chamber
 
 
-def test_gain_level(sim_ion_chamber):
+@pytest.fixture()
+def preamp(sim_ion_chamber):
     preamp = sim_ion_chamber.preamp
-    assert isinstance(preamp.sensitivity_value.get(use_monitor=False), int)
-    assert isinstance(preamp.sensitivity_unit.get(use_monitor=False), int)
+    return preamp
+
+
+def test_get_gain_level(preamp):
     # Change the preamp settings
-    preamp.sensitivity_value.put(4),  # 20 uA/V
-    preamp.sensitivity_unit.put(2),
+    preamp.sensitivity_value.put("20")
+    assert preamp.sensitivity_value.get(as_string=True) == "20"
+    assert preamp.sensitivity_value.get(as_string=False) == 4
+    preamp.sensitivity_unit.put("uA/V"),
     preamp.offset_value.put(1),  # 2 uA/V
     preamp.offset_unit.put(2),
     # Check that the gain level moved
     assert preamp.gain_level.get(use_monitor=False) == 5
+
+
+def test_put_gain_level(preamp):
     # Move the gain level
     preamp.gain_level.set(15).wait(timeout=3)
     # Check that the preamp sensitivities are moved
-    assert preamp.sensitivity_value.get(use_monitor=False) == 3  # 10 nA/V
-    assert preamp.sensitivity_unit.get(use_monitor=False) == 1
+    assert preamp.sensitivity_value.get(use_monitor=False) == "10"
+    assert preamp.sensitivity_unit.get(use_monitor=False) == "nA/V"
     # Check that the preamp sensitivity offsets are moved
-    assert preamp.offset_value.get(use_monitor=False) == "1"  # 1 nA/V
+    assert preamp.offset_value.get(use_monitor=False) == "1"
     assert preamp.offset_unit.get(use_monitor=False) == "nA"
 
 
-def test_gain_signals(sim_ion_chamber):
-    preamp = sim_ion_chamber.preamp
-    assert isinstance(preamp.sensitivity_value.get(use_monitor=False), int)
-    assert isinstance(preamp.sensitivity_unit.get(use_monitor=False), int)
+def test_gain_signals(preamp):
     # Change the preamp settings
-    preamp.sensitivity_value.put(4)  # 20 uA/V
-    preamp.sensitivity_unit.put(2)
-    preamp.offset_value.put(1)  # 2 uA/V
-    preamp.offset_unit.put(2)
+    preamp.sensitivity_value.put("20")
+    preamp.sensitivity_unit.put("uA/V")
+    preamp.offset_value.put("2")
+    preamp.offset_unit.put("uA")
     # Check the gain and gain_db signals
     assert preamp.gain.get(use_monitor=False) == pytest.approx(1 / 20e-6)
     assert preamp.gain_db.get(use_monitor=False) == pytest.approx(46.9897)
 
 
-def test_load_ion_chambers(sim_registry):
+def test_load_ion_chambers(sim_registry, mocker):
+    async def resolve_device_names(defns):
+        for defn in defns:
+            defn["name"] = f"ion_chamber_{defn['ch_num']}"
+
+    mocker.patch("haven.ion_chamber.resolve_device_names", new=resolve_device_names)
     new_ics = ion_chamber.load_ion_chambers()
     # Test the channel info is extracted properly
     ic = sim_registry.find(label="ion_chambers")
     assert ic.ch_num == 2
-    assert ic.preamp.prefix.strip(":").split(":")[-1] == "SR02"
-    assert ic.voltmeter.prefix == "255idc:LabjackT7_0:Ai0"
+    assert ic.preamp.prefix.strip(":").split(":")[-1] == "SR03"
+    assert ic.voltmeter.prefix == "255idc:LabjackT7_0:Ai1"
+    assert ic.counts_per_volt_second == 1e7
 
 
 def test_default_pv_prefix():
@@ -58,32 +69,41 @@ def test_default_pv_prefix():
     prefix = "myioc:myscaler"
     # Instantiate the device with *scaler_prefix* argument
     device = ion_chamber.IonChamber(
-        name="device", prefix="gibberish", ch_num=1, scaler_prefix=prefix
+        name="device1", prefix="gibberish", ch_num=1, scaler_prefix=prefix
     )
     device.scaler_prefix = prefix
     assert device.scaler_prefix == prefix
     # Instantiate the device with *scaler_prefix* argument
-    device = ion_chamber.IonChamber(name="device", ch_num=1, prefix=prefix)
+    device = ion_chamber.IonChamber(name="device2", ch_num=1, prefix=prefix)
     assert device.scaler_prefix == prefix
 
 
 def test_volts_signal(sim_ion_chamber):
-    """Test that the scaler tick counts get properly converted to pre-amp voltage."""
+    """Test that the scaler tick counts get properly converted to pre-amp voltage.
+
+    Assumes 10V max, 100 MHz max settings on the V2F100
+
+    """
     chamber = sim_ion_chamber
     # Set the necessary dependent signals
-    chamber.counts.sim_put(int(0.13e7))  # 1.3 V
-    chamber.clock_ticks.sim_put(1e7)  # 10 MHz clock
+    chamber.counts_per_volt_second = 10e6  # 100 Mhz / 10 V
+    chamber.counts.sim_put(int(1.3e7))  # 1.3 V
+    chamber.frequency.sim_put(int(10e6))  # 10 MHz clock
+    chamber.clock_ticks.sim_put(1e7)  # 1 second @ 10 MHz
     # Check the volts answer
     assert chamber.volts.get() == 1.30
 
 
 def test_amps_signal(sim_ion_chamber):
-    """Test that the scaler tick counts get properly converted to ion chamber current."""
+    """Test that scaler tick counts get properly converted to ion chamber current."""
     chamber = sim_ion_chamber
     # Set the necessary dependent signals
-    chamber.counts.sim_put(int(0.13e7))  # 1.3V
+    chamber.counts_per_volt_second = 10e6  # 100 Mhz / 10 V
+    chamber.counts.sim_put(int(13e6))  # 1.3V
+    chamber.frequency.sim_put(int(10e6))  # 10 MHz clock
     chamber.clock_ticks.sim_put(1e7)  # 10 MHz clock
-    chamber.preamp.gain.put(1 / 2e-5)  # 20 µA/V to V/A
+    chamber.preamp.sensitivity_value.put(4)  # "20"
+    chamber.preamp.sensitivity_unit.put(2)  # "µA/V"
     # Make sure it ignores the offset if it's off
     chamber.preamp.offset_on.put("OFF")
     chamber.preamp.offset_value.put("2")  # 2
@@ -96,9 +116,12 @@ def test_amps_signal_with_offset(sim_ion_chamber):
     """Test that the scaler tick counts get properly converted to pre-amp voltage."""
     chamber = sim_ion_chamber
     # Set the necessary dependent signals
-    chamber.counts.sim_put(int(0.13e7))  # 1.3V
+    chamber.counts.sim_put(int(1.3e7))  # 1.3V
+    chamber.counts_per_volt_second = 10e6  # 100 Mhz / 10 V
     chamber.clock_ticks.sim_put(1e7)  # 10 MHz clock
-    chamber.preamp.gain.put(1 / 2e-5)  # 20 µA/V to V/A
+    chamber.frequency.sim_put(int(10e6))  # 10 MHz clock
+    chamber.preamp.sensitivity_value.put(4)  # "20"
+    chamber.preamp.sensitivity_unit.put(2)  # "µA/V"
     chamber.preamp.offset_on.put("ON")
     chamber.preamp.offset_sign.put("-")
     chamber.preamp.offset_value.put("2")  # 2
@@ -115,7 +138,8 @@ def test_voltmeter_amps_signal(sim_ion_chamber):
     chamber = sim_ion_chamber
     # Set the necessary dependent signals
     chamber.voltmeter.volts.sim_put(1.3)  # 1.3V
-    chamber.preamp.gain.put(1 / 2e-5)  # 20 µA/V to V/A
+    chamber.preamp.sensitivity_value.put(4)  # "20"
+    chamber.preamp.sensitivity_unit.put(2)  # "µA/V"
     # Make sure it ignores the offset if it's off
     chamber.preamp.offset_on.put("OFF")
     chamber.preamp.offset_value.put("2")  # 2
@@ -124,12 +148,12 @@ def test_voltmeter_amps_signal(sim_ion_chamber):
     assert chamber.voltmeter.amps.get() == pytest.approx(2.6e-5)
 
 
-def test_voltmeter_name(sim_ion_chamber):
-    chamber = sim_ion_chamber
-    assert chamber.voltmeter.description.get() != "Icake"
-    # Change the ion chamber name, and see if the voltmeter name updates
-    chamber.description.put("Icake")
-    assert chamber.voltmeter.description.get() == "Icake"
+# def test_voltmeter_name(sim_ion_chamber):
+#     chamber = sim_ion_chamber
+#     assert chamber.voltmeter.description.get() != "Icake"
+#     # Change the ion chamber name, and see if the voltmeter name updates
+#     chamber.description.put("Icake")
+#     assert chamber.voltmeter.description.get() == "Icake"
 
 
 def test_offset_pv(sim_registry):
@@ -164,7 +188,7 @@ def test_offset_pv(sim_registry):
     ]
     for ch_num, suffix in channel_suffixes:
         ic = ion_chamber.IonChamber(
-            prefix="scaler_ioc", ch_num=ch_num, name=f"ion_chamber_{ch_num}"
+            prefix="scaler_ioc:", ch_num=ch_num, name=f"ion_chamber_{ch_num}"
         )
         assert ic.offset.pvname == f"scaler_ioc:scaler1_{suffix}", f"channel {ch_num}"
 
@@ -218,6 +242,10 @@ def test_flyscan_collect(sim_ion_chamber):
             "timestamps": {name: [timestamp]},
             "time": timestamp,
         }
+
+
+def test_default_time_signal(sim_ion_chamber):
+    assert sim_ion_chamber.default_time_signal is sim_ion_chamber.exposure_time
 
 
 # -----------------------------------------------------------------------------

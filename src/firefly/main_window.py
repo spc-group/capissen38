@@ -18,7 +18,6 @@ class FireflyMainWindow(PyDMMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.customize_ui()
-        self.export_actions()
 
     def open(self, *args, **kwargs):
         widget = super().open(*args, **kwargs)
@@ -95,12 +94,16 @@ class FireflyMainWindow(PyDMMainWindow):
         _label.setText("Queue:")
         bar.addPermanentWidget(_label)
         self.ui.environment_label = QtWidgets.QLabel()
+        self.ui.environment_label.setToolTip(
+            "The current state of the queue server environment."
+        )
         self.ui.environment_label.setText("N/A")
         bar.addPermanentWidget(self.ui.environment_label)
         _label = QtWidgets.QLabel()
         _label.setText("/")
         bar.addPermanentWidget(_label)
         self.ui.re_label = QtWidgets.QLabel()
+        self.ui.re_label.setToolTip("The current state of the queue server run engine.")
         self.ui.re_label.setText("N/A")
         bar.addPermanentWidget(self.ui.re_label)
         # Connect signals to the status bar
@@ -124,7 +127,7 @@ class FireflyMainWindow(PyDMMainWindow):
         self.ui.queue_menu.addSeparator()
         # Queue settings for the queue client
         self.ui.queue_menu.addAction(app.launch_queuemonitor_action)
-        self.ui.queue_menu.addAction(app.queue_autoplay_action)
+        self.ui.queue_menu.addAction(app.queue_autostart_action)
         self.ui.queue_menu.addAction(app.queue_open_environment_action)
         # Positioners menu
         self.ui.positioners_menu = QtWidgets.QMenu(self.ui.menubar)
@@ -141,10 +144,13 @@ class FireflyMainWindow(PyDMMainWindow):
         self.ui.menuMotors = QtWidgets.QMenu(self.ui.menubar)
         self.ui.menuMotors.setObjectName("menuMotors")
         self.ui.menuMotors.setTitle("Extra &Motors")
-        self.ui.positioners_menu.addAction(self.ui.menuMotors.menuAction())
+        motors_action = self.ui.menuMotors.menuAction()
+        self.ui.positioners_menu.addAction(motors_action)
+        motors_action.setIcon(qta.icon("mdi.cog-clockwise"))
         # Menu to launch the Window to change energy
         self.ui.positioners_menu.addAction(app.show_energy_window_action)
         # Add optical components
+        self.ui.positioners_menu.addAction(app.show_filters_window_action)
         self.ui.positioners_menu.addSection("Slits")
         for action in app.slits_actions.values():
             self.ui.positioners_menu.addAction(action)
@@ -161,13 +167,9 @@ class FireflyMainWindow(PyDMMainWindow):
         self.ui.menuScans.setObjectName("menuScans")
         self.ui.menuScans.setTitle("&Scans")
         self.ui.menubar.addAction(self.ui.menuScans.menuAction())
-        self.ui.menuScans.addAction(app.show_count_plan_window_action)
-        # XAFS scan window
-        self.add_menu_action(
-            action_name="actionShow_Xafs_Scan",
-            text="&XAFS Scan",
-            menu=self.ui.menuScans,
-        )
+        # Add actions to the individual plans
+        for action in app.plan_actions:
+            self.ui.menuScans.addAction(action)
         # Add entries for general scan management
         self.ui.menuScans.addSeparator()
         self.ui.menuScans.addAction(app.show_run_browser_action)
@@ -234,10 +236,6 @@ class FireflyMainWindow(PyDMMainWindow):
         if data_plugins.is_read_only():
             title += " [Read Only Mode]"
         self.setWindowTitle(title)
-
-    def export_actions(self):
-        """Expose specific signals that might be useful for responding to window changes."""
-        self.actionShow_Xafs_Scan = self.ui.actionShow_Xafs_Scan
 
 
 class PlanMainWindow(FireflyMainWindow):

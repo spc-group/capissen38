@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -22,6 +23,32 @@ ALPHA = hbar**2 * c**2 / 2 / m_e
 ALPHA = ALPHA.to("electron_volt * angstrom * angstrom").magnitude
 
 
+def energy_to_wavenumber(energy):
+    return np.sqrt(energy / ALPHA)
+
+
+def wavenumber_to_energy(wavenumber):
+    return wavenumber**2 * ALPHA
+
+
+# converting between energy steps and k steps
+def E_step_to_k_step(E_start, E_step):
+    k0 = energy_to_wavenumber(E_start)
+    k1 = energy_to_wavenumber(E_start + E_step)
+    return k1 - k0
+
+
+def k_step_to_E_step(k_start, k_step):
+    E0 = wavenumber_to_energy(k_start)
+    E1 = wavenumber_to_energy(k_start + k_step)
+    return E1 - E0
+
+
+def round_to_int(num):
+    digits = -int(math.log10(math.ulp(num)))
+    return int(round(num, digits))
+
+
 @dataclass
 class EnergyRange:
     """A range of energies used for scanning."""
@@ -31,6 +58,17 @@ class EnergyRange:
 
     def exposures(self):
         raise NotImplementedError
+
+
+def full_range(start, end, step):
+    """Calculate a range, but inclusive of start and end (if a multiple of
+    the step).
+
+    """
+
+    num_steps = round_to_int((end - start) / step)
+    lin_max = start + num_steps * step
+    return np.linspace(start, lin_max, num=num_steps + 1)
 
 
 @dataclass
@@ -48,6 +86,8 @@ class ERange(EnergyRange):
       Ending energy of the range, in eV.
     E_step
       Step-size between energies, in eV.
+    weight
+      Weighting factor for longer exposures at higher energies.
     exposure
       How long to spend at each energy, in seconds.
 
@@ -56,15 +96,18 @@ class ERange(EnergyRange):
     E_min: float
     E_max: float
     E_step: float = 1.0
+    weight: float = 0.0
     exposure: float = DEFAULT_EXPOSURE
 
     def energies(self):
         """Convert the range to a sequence of actual energy values, in eV."""
-        return np.arange(self.E_min, self.E_max + self.E_step, self.E_step)
+        return full_range(self.E_min, self.E_max, self.E_step)
 
     def exposures(self):
         """Convert the range to a sequence of exposure times, in seconds."""
-        return [self.exposure] * len(self.energies())
+        # disable weight for now
+        # return self.exposure  * self.energies() ** self.weight
+        return self.exposure * self.energies() ** 0  # do not consider weights for now
 
 
 @dataclass
@@ -76,7 +119,7 @@ class KRange(EnergyRange):
     Parameters
     ==========
 
-    E_min
+    k_min
       Starting energy of the range, in eV.
     k_max
       Ending energy of the range, in Å⁻.
@@ -89,7 +132,7 @@ class KRange(EnergyRange):
 
     """
 
-    E_min: float
+    k_min: float
     k_max: float
     k_step: float = 0.1
     k_weight: float = 0.0
@@ -97,26 +140,19 @@ class KRange(EnergyRange):
 
     def energies(self):
         """Calculates photon energies in units of eV."""
-        return self.wavenumber_to_energy(self.wavenumbers())
-
-    def energy_to_wavenumber(self, energy):
-        return np.sqrt(energy / ALPHA)
-
-    def wavenumber_to_energy(self, wavenumber):
-        return wavenumber**2 * ALPHA
+        return wavenumber_to_energy(self.wavenumbers())
 
     def wavenumbers(self):
         """Calculates wavenumbers (k) for the photo-electron in units Å⁻."""
-        k_min = self.energy_to_wavenumber(self.E_min)
-        ks = np.arange(k_min, self.k_max + self.k_step, self.k_step)
+        ks = full_range(self.k_min, self.k_max, self.k_step)
         return ks
 
     def exposures(self):
         ks = self.wavenumbers()
-        return self.exposure * (ks / np.min(ks)) ** self.k_weight
+        return self.exposure * ((ks / np.min(ks)) ** self.k_weight)
 
 
-def merge_ranges(*ranges, default_exposure=DEFAULT_EXPOSURE):
+def merge_ranges(*ranges, default_exposure=DEFAULT_EXPOSURE, sort=False):
     """Combine multiple energy ranges.
 
     If any of *ranges* is a instance of ``EnergyRange`` or one of its
@@ -153,6 +189,13 @@ def merge_ranges(*ranges, default_exposure=DEFAULT_EXPOSURE):
         np.asarray(energies, dtype=float), return_index=True
     )
     exposures = np.asarray(exposures, dtype=float)[unique_idx]
+
+    if sort:
+        # sorting energies from small to big
+        sorted_indices = np.argsort(energies)
+        energies = energies[sorted_indices]
+        exposures = exposures[sorted_indices]
+
     return energies, exposures
 
 

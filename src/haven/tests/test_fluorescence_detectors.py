@@ -14,8 +14,8 @@ import numpy as np
 import pytest
 from ophyd import OphydObject, Signal
 
-from haven.instrument.dxp import load_dxp, parse_xmap_buffer
-from haven.instrument.xspress import load_xspress
+from haven.instrument.dxp import load_dxp_detectors, parse_xmap_buffer
+from haven.instrument.xspress import load_xspress_detectors
 
 DETECTORS = ["dxp", "xspress"]
 # DETECTORS = ['dxp']
@@ -32,14 +32,14 @@ def vortex(request):
     yield det
 
 
-def test_load_xspress(sim_registry, mocker):
-    load_xspress(config=None)
+def test_load_xspress_detectors(sim_registry, mocker):
+    load_xspress_detectors(config=None)
     vortex = sim_registry.find(name="vortex_me4_xsp")
     assert vortex.mcas.component_names == ("mca0", "mca1", "mca2", "mca3")
 
 
-def test_load_dxp(sim_registry):
-    load_dxp(config=None)
+def test_load_dxp_detectors(sim_registry):
+    load_dxp_detectors(config=None)
     # See if the device was loaded
     vortex = sim_registry.find(name="vortex_me4")
     # Check that the MCA's are available
@@ -593,6 +593,15 @@ def test_dead_time_calc(vortex):
     assert vortex.dead_time_min.get(use_monitor=False) == 3
     assert vortex.dead_time_max.get(use_monitor=False) == 6
     assert vortex.dead_time_average.get(use_monitor=False) == 4.5
+
+
+def test_default_time_signal_dxp(dxp):
+    assert dxp.default_time_signal is dxp.preset_real_time
+
+
+def test_default_time_signal_xspress(xspress):
+    # assert xspress.default_time_signal is xspress.acquire_time
+    assert xspress.default_time_signal is xspress.cam.acquire_time
 
 
 # -----------------------------------------------------------------------------

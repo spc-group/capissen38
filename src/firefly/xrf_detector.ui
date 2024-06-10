@@ -196,11 +196,11 @@
          <property name="alarmSensitiveBorder" stdset="0">
           <bool>true</bool>
          </property>
-         <property name="channel" stdset="0">
-          <string>haven://${DEV}.acquire</string>
-         </property>
          <property name="PyDMToolTip" stdset="0">
           <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>haven://${DEV}.acquire</string>
          </property>
         </widget>
        </item>
@@ -433,11 +433,11 @@
          <property name="text">
           <string>14.0</string>
          </property>
-         <property name="channel" stdset="0">
-          <string>haven://${DEV}.dead_time_min</string>
-         </property>
          <property name="PyDMToolTip" stdset="0">
           <string>Lowest dead time across all elements.</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>haven://${DEV}.dead_time_min</string>
          </property>
         </widget>
        </item>
@@ -488,11 +488,11 @@
          <property name="text">
           <string>24.0</string>
          </property>
-         <property name="channel" stdset="0">
-          <string>haven://${DEV}.dead_time_max</string>
-         </property>
          <property name="PyDMToolTip" stdset="0">
           <string>Highest dead time across all elements.</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>haven://${DEV}.dead_time_max</string>
          </property>
         </widget>
        </item>
@@ -1127,7 +1127,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>1023</width>
-                 <height>364</height>
+                 <height>394</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1199,17 +1199,6 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-           </layout>
           </widget>
          </widget>
         </item>
@@ -1366,8 +1355,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>863</width>
-                 <height>363</height>
+                 <width>877</width>
+                 <height>393</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_8">

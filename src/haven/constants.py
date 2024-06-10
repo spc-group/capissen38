@@ -1,8 +1,11 @@
+import re
+
 import xraydb
 
 
 def edge_energy(edge_name):
-    E0 = xraydb.xray_edge(*edge_name.split("_")).energy
+    element, shell = re.split(r"[-_]", edge_name)
+    E0 = xraydb.xray_edge(element, shell).energy
     return E0
 
 

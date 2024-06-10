@@ -35,10 +35,8 @@ class FakeHavenMotor(SynAxis):
 @pytest.fixture
 def sim_motor_registry(sim_registry):
     # Create the motors
-    motor1 = FakeHavenMotor(name="SLT V Upper")
-    sim_registry.register(motor1)
-    motor2 = FakeHavenMotor(name="SLT V Lower")
-    sim_registry.register(motor2)
+    FakeHavenMotor(name="SLT V Upper")
+    FakeHavenMotor(name="SLT V Lower")
     yield sim_registry
 
 
@@ -82,9 +80,6 @@ def test_save_motor_position_by_name(mongodb, sim_registry):
     motorB = FakeHavenMotor(name="Motor B")
     motorA.wait_for_connection(timeout=20)
     motorB.wait_for_connection(timeout=20)
-    # Register the new motors with the Haven instrument registry
-    sim_registry.register(motorA)
-    sim_registry.register(motorB)
     # Move to some other motor position so we can tell it saved the right one
     motorA.set(11.0).wait()
     motorA.user_offset.set(1.5).wait()

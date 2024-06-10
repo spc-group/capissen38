@@ -53,6 +53,9 @@
          <property name="styleSheet">
           <string notr="true"/>
          </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
          <property name="macros" stdset="0">
           <string>{&quot;IC&quot;: &quot;fakeIpreKB&quot;}</string>
          </property>
@@ -65,6 +68,9 @@
         <widget class="PyDMEmbeddedDisplay" name="voltmeter_2">
          <property name="toolTip">
           <string/>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
          </property>
          <property name="macros" stdset="0">
           <string>{&quot;IC&quot;: &quot;fakeI0&quot;}</string>
@@ -79,6 +85,9 @@
          <property name="toolTip">
           <string/>
          </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
          <property name="macros" stdset="0">
           <string>{&quot;IC&quot;: &quot;fakeIt&quot;}</string>
          </property>
@@ -91,6 +100,9 @@
         <widget class="PyDMEmbeddedDisplay" name="voltmeter_3">
          <property name="toolTip">
           <string/>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
          </property>
          <property name="macros" stdset="0">
           <string>{&quot;IC&quot;: &quot;fakeIref&quot;}</string>
@@ -157,20 +169,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Queue a plan to automatically set the selected ion chamber gains to within the range 0.5V to 4.5V.</string>
-         </property>
-         <property name="text">
-          <string>Auto-gain</string>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer">
+        <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -181,6 +187,53 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Min (V):</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="volts_min_line_edit">
+         <property name="toolTip">
+          <string>The lower threshold (in volts) that the auto-gain plan will use for deciding when the ion chambers' pre-amp gain settings are correct.</string>
+         </property>
+         <property name="placeholderText">
+          <string>E.g. 1.0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Max (V):</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="volts_max_line_edit">
+         <property name="toolTip">
+          <string>The upper threshold (in volts) that the auto-gain plan will use for deciding when the ion chambers' pre-amp gain settings are correct.</string>
+         </property>
+         <property name="placeholderText">
+          <string>E.g. 4.5</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QueueButton" name="auto_gain_button">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>Queue a plan to automatically set the selected ion chamber gains to within the range 0.5V to 4.5V.</string>
+         </property>
+         <property name="text">
+          <string>Auto-gain</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -199,6 +252,11 @@
    <class>PyDMPushButton</class>
    <extends>QPushButton</extends>
    <header>pydm.widgets.pushbutton</header>
+  </customwidget>
+  <customwidget>
+   <class>QueueButton</class>
+   <extends>QPushButton</extends>
+   <header>firefly.queue_button</header>
   </customwidget>
  </customwidgets>
  <resources/>

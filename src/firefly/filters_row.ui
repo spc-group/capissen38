@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>544</width>
+    <height>54</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="PyDMLabel" name="PyDMLabel_4">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">padding: 0px</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img height=&quot;50&quot; src=&quot;:/optics/filter.png&quot; /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+     <property name="rules" stdset="0">
+      <string>[{&quot;name&quot;: &quot;Filter is In&quot;, &quot;property&quot;: &quot;Text&quot;, &quot;initial_value&quot;: &quot;&quot;, &quot;expression&quot;: &quot;'&lt;img height=\&quot;50\&quot; src=\&quot;:/optics/filter' + (\&quot;\&quot; if ch[0] == \&quot;In\&quot; else \&quot;-empty\&quot;) + '.png\\\&quot;/&gt;'&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;haven://${DEV}.readback&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="PyDMByteIndicator" name="PyDMByteIndicator">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>haven://${DEV}.readback</string>
+     </property>
+     <property name="onColor" stdset="0">
+      <color>
+       <red>235</red>
+       <green>241</green>
+       <blue>181</blue>
+      </color>
+     </property>
+     <property name="offColor" stdset="0">
+      <color>
+       <red>207</red>
+       <green>244</green>
+       <blue>252</blue>
+      </color>
+     </property>
+     <property name="showLabels" stdset="0">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="PyDMPushButton" name="PyDMPushButton">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>In</string>
+     </property>
+     <property name="rules" stdset="0">
+      <string>[{&quot;name&quot;: &quot;Filter is out&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0] != \&quot;IN\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;haven://${DEV}.setpoint&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+     </property>
+     <property name="channel" stdset="0">
+      <string>haven://${DEV}.setpoint</string>
+     </property>
+     <property name="PyDMIcon" stdset="0">
+      <string>arrow-left</string>
+     </property>
+     <property name="pressValue" stdset="0">
+      <string>1</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="PyDMPushButton" name="PyDMPushButton_2">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Out</string>
+     </property>
+     <property name="rules" stdset="0">
+      <string>[{&quot;name&quot;: &quot;Filter is In&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0] != \&quot;OUT\&quot;&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;haven://${DEV}.setpoint&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}], &quot;notes&quot;: &quot;&quot;}]</string>
+     </property>
+     <property name="channel" stdset="0">
+      <string>haven://${DEV}.setpoint</string>
+     </property>
+     <property name="PyDMIcon" stdset="0">
+      <string>arrow-right</string>
+     </property>
+     <property name="pressValue" stdset="0">
+      <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="PyDMLabel" name="material_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-weight: bold;</string>
+       </property>
+       <property name="text">
+        <string>######</string>
+       </property>
+       <property name="channel" stdset="0">
+        <string>haven://${DEV}.material</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="thickness_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>haven://${DEV}.thickness</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="thickness_unit_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>haven://${DEV}.thickness_unit</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PyDMLabel</class>
+   <extends>QLabel</extends>
+   <header>pydm.widgets.label</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMByteIndicator</class>
+   <extends>QWidget</extends>
+   <header>pydm.widgets.byte</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMPushButton</class>
+   <extends>QPushButton</extends>
+   <header>pydm.widgets.pushbutton</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="resources/beamline_components.qrc"/>
+ </resources>
+ <connections/>
+</ui>

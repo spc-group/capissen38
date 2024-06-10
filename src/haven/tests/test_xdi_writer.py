@@ -2,9 +2,9 @@ import datetime as dt
 import logging
 import os
 import time
+from collections import ChainMap
 from io import StringIO
 from pathlib import Path
-from unittest import TestCase, expectedFailure
 
 import numpy as np
 import pytest
@@ -108,131 +108,233 @@ THIS_DIR = Path(__file__).parent
 }
 
 
+start_doc = {
+    "versions": {"bluesky": "1.8.3", "ophyd": "1.6.4"},
+    "detectors": ["I0", "It"],
+    "d_spacing": 3.0,
+    "motors": ["energy", "exposure"],
+    "edge": "Ni_K",
+    "facility": {
+        "name": "Advanced Photon Source",
+        "xray_source": "insertion device",
+    },
+    "beamline": {"name": "20-ID-C", "pv_prefix": "20id:"},
+    "sample_name": "nickel oxide",
+    "uid": "671c3c48-f014-421d-b3e0-57991b6745f6",
+}
+event_doc = {
+    "data": {
+        "I0_net_counts": 2,
+        "It_net_counts": 1.5,
+        "IpreKB_net_counts": 2.5,
+        "Ipreslit_net_counts": 2.2,
+        "Iref_net_counts": 0.56,
+        "energy": 8330,
+        "exposure": 0.1,
+        "sim motor 1": 8330.0,
+    },
+    "time": 1660186828.0055554,
+    "descriptor": "7ed5b8c5-045c-41fa-b79c-50fbcbe777e5",
+}
+descriptor_doc = {
+    "hints": {
+        "I0": {"fields": ["I0_net_counts"]},
+        "IpreKB": {"fields": ["IpreKB_net_counts"]},
+        "Ipreslit": {"fields": ["Ipreslit_net_counts"]},
+        "Iref": {"fields": ["Iref_net_counts"]},
+        "It": {"fields": ["It_net_counts"]},
+        "sim motor 1": {"fields": ["sim motor 1"]},
+        "energy": {"fields": ["energy"]},
+    },
+    "name": "primary",
+    "run_start": "6974290f-fe3f-4535-bb8c-c29c915f88aa",
+    "time": 1712865522.9266968,
+    "uid": "7ed5b8c5-045c-41fa-b79c-50fbcbe777e5",
+}
+
+
 @pytest.fixture()
 def stringio():
     yield StringIO()
 
 
-class CallbackTests(TestCase):
-    stringio = None
-    file_path = THIS_DIR / "sample_file.txt"
-    start_doc = {
-        "versions": {"bluesky": "1.8.3", "ophyd": "1.6.4"},
-        "detectors": ["I0", "It"],
-        "motors": ["energy", "exposure"],
-        "edge": "Ni_K",
-        "facility": {
-            "name": "Advanced Photon Source",
-            "xray_source": "insertion device",
-        },
-        "beamline": {"name": "20-ID-C", "pv_prefix": "20id:"},
-        "sample_name": "nickel oxide",
+@pytest.fixture()
+def file_path(tmp_path):
+    fp = tmp_path / "sample_file.txt"
+    try:
+        yield fp
+    finally:
+        fp.unlink()
+
+
+@pytest.fixture()
+def writer(stringio):
+    yield XDIWriter(stringio)
+
+
+def test_opens_file(file_path):
+    # Pass in a string and it should hold the path until the start document is found
+    fp = file_path
+    writer = XDIWriter(fp)
+    assert writer.fp == fp
+    assert not fp.exists()
+    # Run the writer
+    writer("start", {"edge": "Ni_K"})
+    # Check that a file was created
+    assert fp.exists()
+
+
+def test_uses_open_file(stringio):
+    # Pass in a string and it should hold the path until the start document is found
+    writer = XDIWriter(stringio)
+    assert writer.fd is stringio
+
+
+def test_read_only_file(file_path):
+    # Check that it raises an exception if an open file has no write intent
+    # Put some content in the temporary file
+    with open(file_path, mode="w") as fd:
+        fd.write("Hello, spam!")
+    # Check that the writer raises an exception when the file is open read-only
+    with open(file_path, mode="r") as fd:
+        with pytest.raises(exceptions.FileNotWritable):
+            XDIWriter(fd)
+
+
+def test_required_headers(writer):
+    writer("start", start_doc)
+    writer("descriptor", descriptor_doc)
+    writer("event", event_doc)  # Header gets written on first event
+    # Check that required headers were added to the XDI file
+    writer.fd.seek(0)
+    xdi_output = writer.fd.read()
+    assert "# XDI/1.0 bluesky/1.8.3 ophyd/1.6.4" in xdi_output
+    assert "# Column.1: energy" in xdi_output
+    assert "# Element.symbol: Ni" in xdi_output
+    assert "# Element.edge: K" in xdi_output
+    assert "# Mono.d_spacing: 3" in xdi_output  # Not implemented yet
+    assert "# -------------" in xdi_output
+
+
+@time_machine.travel(fake_time)
+def test_optional_headers(writer):
+    os.environ["TZ"] = "America/New_York"
+    time.tzset()
+    writer("start", start_doc)
+    writer("descriptor", descriptor_doc)
+    writer("event", event_doc)
+    # Check that required headers were added to the XDI file
+    writer.fd.seek(0)
+    xdi_output = writer.fd.read()
+    expected_metadata = {
+        "Facility.name": "Advanced Photon Source",
+        "Facility.xray_source": "insertion device",
+        "Beamline.name": "20-ID-C",
+        "Beamline.pv_prefix": "20id:",
+        "Scan.start_time": "2022-08-19 19:10:51-0400",
+        "Column.8": "time",
         "uid": "671c3c48-f014-421d-b3e0-57991b6745f6",
     }
-    event_doc = {
-        "data": {"I0": 2, "It": 1.5, "energy": 8330, "exposure": 0.1},
-        "time": 1660186828.0055554,
-    }
-
-    def setUp(self):
-        self.stringio = StringIO()
-
-    def tearDown(self):
-        for fp in [
-            self.file_path,
-            Path("{year}{month}{day}_{sample_name}.xdi"),
-            Path("20220819_nickel-oxide.xdi"),
-        ]:
-            if fp.exists():
-                fp.unlink()
-
-    def test_opens_file(self):
-        # Pass in a string and it should hold the path until the start document is found
-        writer = XDIWriter(self.file_path)
-        self.assertEqual(writer.fp, self.file_path)
-        self.assertFalse(self.file_path.exists())
-        # Run the writer
-        writer("start", {"edge": "Ni_K"})
-        # Check that a file was created
-        self.assertTrue(self.file_path.exists())
-
-    def test_uses_open_file(self):
-        # Pass in a string and it should hold the path until the start document is found
-        writer = XDIWriter(self.stringio)
-        self.assertIs(writer.fd, self.stringio)
-
-    def test_read_only_file(self):
-        # Check that it raises an exception if an open file has no write intent
-        # Put some content in the temporary file
-        with open(self.file_path, mode="w") as fd:
-            fd.write("Hello, spam!")
-        # Check that the writer raises an exception when the file is open read-only
-        with open(self.file_path, mode="r") as fd:
-            with self.assertRaises(exceptions.FileNotWritable):
-                XDIWriter(fd)
-
-    @expectedFailure
-    def test_required_headers(self):
-        writer = XDIWriter(self.stringio)
-        writer("start", self.start_doc)
-        # Check that required headers were added to the XDI file
-        self.stringio.seek(0)
-        xdi_output = self.stringio.read()
-        self.assertIn("# XDI/1.0 bluesky/1.8.3 ophyd/1.6.4", xdi_output)
-        self.assertIn("# Column.1: energy", xdi_output)
-        self.assertIn("# Element.symbol: Ni", xdi_output)
-        self.assertIn("# Element.edge: K", xdi_output)
-        self.assertIn("# Mono.d_spacing: 3", xdi_output)
-        self.assertIn("# -------------")
-
-    @time_machine.travel(fake_time)
-    def test_optional_headers(self):
-        writer = XDIWriter(self.stringio)
-        os.environ["TZ"] = "America/New_York"
-        time.tzset()
-        writer("start", self.start_doc)
-        writer("event", self.event_doc)
-        # Check that required headers were added to the XDI file
-        self.stringio.seek(0)
-        xdi_output = self.stringio.read()
-        expected_metadata = {
-            "Facility.name": "Advanced Photon Source",
-            "Facility.xray_source": "insertion device",
-            "Beamline.name": "20-ID-C",
-            "Beamline.pv_prefix": "20id:",
-            "Scan.start_time": "2022-08-19 19:10:51-0400",
-            "Column.5": "time",
-            "uid": "671c3c48-f014-421d-b3e0-57991b6745f6",
-        }
-        for key, val in expected_metadata.items():
-            self.assertIn(f"# {key.lower()}: {val.lower()}\n", xdi_output.lower())
-
-    @time_machine.travel(fake_time)
-    def test_file_path_formatting(self):
-        """Check that "{date}_{user}.xdi" formatting works in the filename."""
-        writer = XDIWriter("{year}{month}{day}_{sample_name}.xdi")
-        writer.start(self.start_doc)
-        self.assertEqual(str(writer.fp), "20220819_nickel-oxide.xdi")
-
-    def test_file_path_formatting_bad_key(self):
-        """Check that "{date}_{user}.xdi" raises exception if placeholder is invalid."""
-        writer = XDIWriter("{year}{month}{day}_{spam}_{sample_name}.xdi")
-        with self.assertRaises(exceptions.XDIFilenameKeyNotFound):
-            writer.start(self.start_doc)
-
-    def test_data(self):
-        """Check that the TSV data section is present and correct."""
-        writer = XDIWriter(self.stringio)
-        writer.start(self.start_doc)
-        writer("event", self.event_doc)
-        # Verify the data were written properly
-        self.stringio.seek(0)
-        xdi_output = self.stringio.read()
-        self.assertIn("8330", xdi_output)
-        self.assertIn("1660186828.0055554", xdi_output)
+    for key, val in expected_metadata.items():
+        assert f"# {key.lower()}: {val.lower()}\n" in xdi_output.lower()
 
 
-def test_with_plan(stringio, sim_registry, event_loop):
+@time_machine.travel(fake_time)
+def test_file_path_formatting(tmp_path):
+    """Check that "{date}_{user}.xdi" formatting works in the filename."""
+    writer = XDIWriter(tmp_path / "{year}{month}{day}_{short_uid}_{sample_name}.xdi")
+    writer.start(start_doc)
+    assert str(writer.fp) == str(tmp_path / "20220819_671c3c48_nickel-oxide.xdi")
+
+
+@time_machine.travel(fake_time)
+def test_file_path_reentry(tmp_path):
+    """Check that "{date}_{user}.xdi" formatting can be used multiple times."""
+    # Start the writer once with basic arguments
+    writer = XDIWriter(tmp_path / "{year}{month}{day}_{short_uid}_{sample_name}.xdi")
+    writer.start(start_doc)
+    target_path = str(tmp_path / "20220819_671c3c48_nickel-oxide.xdi")
+    assert str(writer.fp) == target_path
+    assert writer.fd.name == target_path
+    # Check that additional start docs don't create new files
+    writer.start(start_doc)
+    # Start the writer again with a second set of arguments
+    new_start_doc = ChainMap(
+        {
+            "sample_name": "manganese oxide",
+            "uid": "a6842eaa-6dd3-4666-83a0-1829cd687556",
+        },
+        start_doc,
+    )
+    writer.start(new_start_doc)
+    target_path = str(tmp_path / "20220819_a6842eaa_manganese-oxide.xdi")
+    assert str(writer.fp) == target_path
+    assert writer.fd.name == target_path
+
+
+@time_machine.travel(fake_time)
+def test_secondary_stream(tmp_path):
+    """Check that secondary data streams get ignored."""
+    sec_event = ChainMap(
+        {
+            "descriptor": "b1006389-fd92-4037-9eb3-02332703552b",
+            "data": {"Iref": 2},
+        },
+        event_doc,
+    )
+    sec_descriptor = ChainMap(
+        {"uid": sec_event["descriptor"], "name": "secondary"}, descriptor_doc
+    )
+    # Set up the writer
+    writer = XDIWriter(tmp_path / "{year}{month}{day}_{short_uid}_{sample_name}.xdi")
+    writer.start(start_doc)
+    # Events before the descriptor should raise exceptions
+    assert writer._primary_uid == None
+    with pytest.raises(exceptions.DocumentNotFound):
+        writer.event(event_doc)
+    # Prime the writer with descriptor documents
+    writer.descriptor(descriptor_doc)
+    writer.descriptor(sec_descriptor)
+    # Send a correct primary data event
+    writer.event(event_doc)
+    # Send an event from secondary data stream
+    writer.event(sec_event)
+
+
+@time_machine.travel(fake_time)
+def test_manager_path(tmp_path, beamline_manager):
+    """Check that "{manager_path}.xdi" formatting works in the filename."""
+    # Set up a full path on the beamline manager
+    beamline_manager.local_storage.full_path._readback = str(tmp_path) + "/"
+    # Create the XDI writer object
+    writer = XDIWriter(
+        "{manager_path}/{year}{month}{day}_{short_uid}_{sample_name}.xdi"
+    )
+    writer.start(start_doc)
+    assert str(writer.fp) == f"{tmp_path}/20220819_671c3c48_nickel-oxide.xdi"
+
+
+def test_file_path_formatting_bad_key():
+    """Check that "{date}_{user}.xdi" raises exception if placeholder is invalid."""
+    writer = XDIWriter("{year}{month}{day}_{spam}_{sample_name}.xdi")
+    with pytest.raises(exceptions.XDIFilenameKeyNotFound):
+        writer.start(start_doc)
+
+
+def test_data(writer):
+    """Check that the TSV data section is present and correct."""
+    writer.start(start_doc)
+    writer.descriptor(descriptor_doc)
+    writer("event", event_doc)
+    # Verify the data were written properly
+    writer.fd.seek(0)
+    xdi_output = writer.fd.read()
+    assert "8330" in xdi_output
+    assert "1660186828.0055554" in xdi_output
+
+
+def test_with_plan(stringio, sim_registry, event_loop, beamline_manager, tmp_path):
+    beamline_manager.local_storage.full_path._readback = str(tmp_path) + "/"
     I0 = SynGauss(
         "I0",
         motor,
@@ -259,8 +361,8 @@ def test_with_plan(stringio, sim_registry, event_loop):
         np.arange(8300.0, 8400.0, 10),
         detectors=[I0, It],
         E0="Ni_K",
-        energy_positioners=[energy_motor],
-        time_positioners=[exposure],
+        energy_signals=[energy_motor],
+        time_signals=[exposure],
         md=dict(sample_name="NiO_rock_salt"),
     )
     RE(energy_plan, writer)

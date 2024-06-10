@@ -20,7 +20,6 @@ def kb_mirrors(sim_registry):
         vert_downstream_motor="255idc:m4",
         labels={"kb_mirrors"},
     )
-    sim_registry.register(kb)
     return kb
 
 
@@ -41,8 +40,6 @@ def kb_bendable_mirrors(sim_registry):
         vert_downstream_bender="255idc:m24",
         labels={"kb_mirrors"},
     )
-    sim_registry.register(kb)
-    # print(kb.horiz.__class__)
     return kb
 
 

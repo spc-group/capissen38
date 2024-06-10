@@ -20,7 +20,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <widget class="QWidget" name="verticalLayoutWidget">
-      <layout class="QVBoxLayout" name="run_list_layout" stretch="1,0,0">
+      <layout class="QVBoxLayout" name="run_list_layout" stretch="1,0,0,0">
        <item>
         <widget class="QTableView" name="run_tableview">
          <property name="sizePolicy">
@@ -164,6 +164,40 @@
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="sleep_button">
+           <property name="text">
+            <string>Sleep</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="sleep_label">
+           <property name="text">
+            <string>&lt;- Press the button</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_8">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="FiltersWidget" name="filters_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <property name="leftMargin">
@@ -212,11 +246,14 @@
             </item>
             <item row="1" column="1">
              <widget class="QComboBox" name="filter_sample_combobox">
+              <property name="toolTip">
+               <string>The sample composition to look for. Supports regular expression. E.g. Sb.*Te</string>
+              </property>
               <property name="editable">
                <bool>true</bool>
               </property>
               <property name="currentText">
-               <string>Sb.*Te</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -229,11 +266,14 @@
             </item>
             <item row="2" column="1">
              <widget class="QComboBox" name="filter_edge_combobox">
+              <property name="toolTip">
+               <string>The X-ray absorption edge, or energy in electron-volts, that an energy scan was collected. Supports regular expressions. E.g. Ni_K</string>
+              </property>
               <property name="editable">
                <bool>true</bool>
               </property>
               <property name="currentText">
-               <string>Sb</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -250,7 +290,7 @@
                <bool>true</bool>
               </property>
               <property name="currentText">
-               <string>wolfman</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -388,7 +428,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="metadata_tab">
        <attribute name="title">
@@ -439,9 +479,12 @@
            </spacer>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="plot_multi_hints_checkbox">
             <property name="text">
              <string>Use Hints</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -476,8 +519,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>84</width>
-             <height>28</height>
+             <width>788</width>
+             <height>460</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -488,7 +531,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
-             <widget class="GraphicsLayoutWidget" name="plot_multi_view" native="true">
+             <widget class="BrowserMultiPlotWidget" name="plot_multi_view" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -745,11 +788,156 @@
       </widget>
       <widget class="QWidget" name="map_tab">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <attribute name="title">
         <string>Map</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <item>
+           <spacer name="horizontalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="plot_2d_hints_checkbox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Limits the selectable signals to those marked as &quot;hinted&quot;.</string>
+            </property>
+            <property name="text">
+             <string>Use Hints</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_14">
+            <item>
+             <widget class="QLabel" name="signal_value_label">
+              <property name="text">
+               <string>Value:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="signal_value_combobox">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="logarithm_checkbox_2d">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Plot on a logarithmic scale</string>
+            </property>
+            <property name="text">
+             <string>Log</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="invert_checkbox_2d">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Invert the values in the map</string>
+            </property>
+            <property name="text">
+             <string>Invert</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="gradient_checkbox_2d">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Show the magnitude of the gradient</string>
+            </property>
+            <property name="text">
+             <string>Grad</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="aggregate_combobox_2d">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>What comparison to use if multiple compatible scans have been selected.</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>Median</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Mean</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Sum</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>StDev</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Max</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Min</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="Browser2DPlotWidget" name="plot_2d_view" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="xrf_tab">
        <property name="enabled">
@@ -785,13 +973,19 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>GraphicsLayoutWidget</class>
+   <class>Browser1DPlotWidget</class>
    <extends>QWidget</extends>
-   <header>pyqtgraph</header>
+   <header>firefly.run_browser</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>Browser1DPlotWidget</class>
+   <class>Browser2DPlotWidget</class>
+   <extends>QWidget</extends>
+   <header>firefly.run_browser</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BrowserMultiPlotWidget</class>
    <extends>QWidget</extends>
    <header>firefly.run_browser</header>
    <container>1</container>

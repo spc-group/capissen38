@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>398</width>
+    <width>468</width>
     <height>132</height>
    </rect>
   </property>
@@ -56,6 +56,13 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>There is a temporary limit on the refresh rate of 5 seconds. Fix is in progress.</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

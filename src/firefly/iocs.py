@@ -31,8 +31,10 @@ class IocsDisplay(display.FireflyDisplay):
             self.iocs_layout.takeAt(idx).widget().deleteLater()
         # Add embedded displays for all the ion chambers
         self._ioc_displays = []
-        config = haven.load_config()
-        for idx, (name, prefix) in enumerate(config.get("iocs", {}).items()):
+        manager = haven.registry["beamline_manager"]
+
+        for idx, cpt_name in enumerate(manager.iocs.component_names):
+            cpt = getattr(manager.iocs, cpt_name)
             # Add a separator
             if idx > 0:
                 line = QtWidgets.QFrame(self.ui)
@@ -43,8 +45,9 @@ class IocsDisplay(display.FireflyDisplay):
                 self.iocs_layout.addWidget(line)
             # Create the display object
             disp = PyDMEmbeddedDisplay(parent=self)
-            disp.macros = json.dumps({"IOC": prefix, "NAME": name})
-            disp.filename = "ioc.py"
+            name = cpt.dotted_name.split(".")[-1].lstrip("ioc")
+            disp.macros = json.dumps({"IOC": cpt.name, "NAME": name})
+            disp.filename = "ioc.ui"
             # Add the Embedded Display to the Results Layout
             self.iocs_layout.addWidget(disp)
             self._ioc_displays.append(disp)

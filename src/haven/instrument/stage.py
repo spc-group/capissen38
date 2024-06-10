@@ -1,12 +1,10 @@
-import asyncio
 import logging
 
 from ophyd import Device, EpicsMotor
 from ophyd import FormattedComponent as FCpt
 
 from .._iconfig import load_config
-from .device import aload_devices, make_device
-from .instrument_registry import registry
+from .device import make_device
 
 __all__ = ["XYStage", "load_stages"]
 
@@ -46,26 +44,25 @@ class XYStage(Device):
         super().__init__(prefix, labels=labels, *args, **kwargs)
 
 
-def load_stage_coros(config=None):
-    """Provide co-routines for loading the stages defined in the
-    configuration files.
+def load_stages(config=None):
+    """Load the stages defined in the configuration files' ``[stage]``
+    sections.
 
     """
     if config is None:
         config = load_config()
+    devices = []
     for name, stage_data in config.get("stage", {}).items():
-        yield make_device(
-            XYStage,
-            name=name,
-            prefix=stage_data["prefix"],
-            pv_vert=stage_data["pv_vert"],
-            pv_horiz=stage_data["pv_horiz"],
+        devices.append(
+            make_device(
+                XYStage,
+                name=name,
+                prefix=stage_data["prefix"],
+                pv_vert=stage_data["pv_vert"],
+                pv_horiz=stage_data["pv_horiz"],
+            )
         )
-
-
-def load_stages(config=None):
-    """Load the XY stages defined in the config ``[stage]`` section."""
-    asyncio.run(aload_devices(*load_stage_coros(config=config)))
+    return devices
 
 
 # -----------------------------------------------------------------------------

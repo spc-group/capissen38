@@ -226,11 +226,11 @@ font-weight: bold;</string>
          <property name="channel" stdset="0">
           <string>haven://${IC}.voltmeter.volts</string>
          </property>
-         <property name="enableRichText" stdset="0">
-          <bool>false</bool>
-         </property>
          <property name="displayFormat" stdset="0">
           <enum>PyDMLabel::Decimal</enum>
+         </property>
+         <property name="enableRichText" stdset="0">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -496,9 +496,6 @@ font-weight: bold;</string>
          <property name="PyDMToolTip" stdset="0">
           <string>Increase the pre-amp gain (lower sensitivity values)</string>
          </property>
-         <property name="monitorDisp" stdset="0">
-          <bool>false</bool>
-         </property>
          <property name="channel" stdset="0">
           <string>haven://${IC}.preamp.gain_level</string>
          </property>
@@ -527,6 +524,9 @@ font-weight: bold;</string>
           <bool>true</bool>
          </property>
          <property name="writeWhenRelease" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="monitorDisp" stdset="0">
           <bool>false</bool>
          </property>
         </widget>
@@ -638,9 +638,9 @@ font-weight: bold;</string>
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="auto_gain_checkbox">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="toolTip">
         <string>Include this ion chamber when using the adaptive plan for setting gains.</string>
