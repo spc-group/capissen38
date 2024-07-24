@@ -24,104 +24,27 @@ channels:
 dependencies:
   # --- Python core packages
   - python=3.10  # Until this is fixed in pydm: https://github.com/slaclab/pydm/issues/951
-  - ipython
-  - ipykernel
-  - jupyter
-  - jupyterlab
-  - notebook
   - pip
-  - psutil
-  - numba>=0.56  # Ensures 0.53 (broken) isn't installed
-  - # This version of networkx has an importlib bug in it
-  - networkx < 3.3
-
-  # --- testing and quality assurance
-  - black >=24
-  - flake8
-  - pre-commit
-  - pylint
-  - pytest
-  - pytest-cov
-  - pytest-qt >=4.2.0
-  - pytest-xvfb
-  - pytest-mock
-  - pytest-asyncio
-  - caproto >=1.0.0
-
-  # Database management
-  - pymongo
-  - databroker-pack
-  - databroker =1.2.5
-
+  
   # --- Qt
   # Pin at 5.12.3 until pydm figures out how to designer widgets
   # - pyqt ==5.12.3
   # - pyqtgraph < 0.13.0  # Last version to support pyqt 5.12
   # - qt >=5.12
-  - qt >= 5.15
-  - pyqt >= 5.15
-  - pyqtgraph
-  - qtawesome
-  - qasync
-
-  # --- general support packages
-  - bitshuffle
-  - h5py
-  - hdf5plugin
-  - imagecodecs-lite
-  - ipympl
-  - lxml
-  - pandas
-  - pint
-  - scikit-image
-  - xlrd
-  - peakutils
-  - pyarrow < 11.0.0  # Tempoary fix, remove once the libort missing symbol doesn't break CI
-
-  # XES analysis packages
-  - scikit-learn
-  - kneed
-
-  # --- Bluesky framework packages
-  - adl2pydm
-  # apstools is installed from github by pip until DG645 and SRS570 settling are released
-  # - apstools >=1.6.16
-  - area-detector-handlers
-  - bluesky-queueserver
-  - bluesky-queueserver-api
-  - bluesky-widgets
-  - bluesky-adaptive
-  - bluesky >=1.8.1
-  - ophyd >=1.6.3
-  - pcdsdevices  # For extra signal types
-  - pydm >=1.18.0
-  - typhos
-  - p4p
-  - tiled-client >= 0.1.0b6  # Make sure we have pydantic2 support
-  - xarray !=2022.6.0  # incompatible with numpy=1.20
+  # - qt >= 5.15
+  # - pyqt >= 5.15
 
   # --- user-requested packages
-  - aps-dm-api >=5   # linux-64  osx-64
-  - mergedeep
-  - pvview
-  - pyRestTable
-  - stdlogpj
-  - tqdm
-  - xrayutilities
-  - pyviz_comms
-  - hvplot
+  # - aps-dm-api >=5   # linux-64  osx-64
+  # - mergedeep
+  # - pvview
+  # - pyRestTable
+  # - stdlogpj
+  # - tqdm
+  # - xrayutilities
+  # - pyviz_comms
+  # - hvplot
   
-  # --- packaging and publishing
-  - build
-  - twine
-  - coverage
-  - poetry
-  - sphinx
-  - pandoc
-  - nbsphinx
-  - graphviz
-  - sphinxcontrib-napoleon
-
   - pip:
     - aioca
     - apsbss
@@ -135,8 +58,73 @@ dependencies:
     - pytest-timeout  # Get rid of this if tests are not hanging
     - git+https://github.com/pcdshub/pcdsdevices
     - git+https://github.com/BCDA-APS/apstools.git@a165d24b2ae272ba0db3fb73d9feba4416f40631
-    # - git+https://github.com/BCDA-APS/apstools.git@50a142f1cc761553f14570c6c5f7e799846a0ddf
-    # - https://github.com/BCDA-APS/adl2pydm/archive/main.zip
-    # --- optional Bluesky framework packages for evaluation
-    # - bluesky-webclient is NOT Python software, don't install it this way
-    #    https://github.com/bluesky/bluesky-webclient
+    - area-detector-handlers
+    - bluesky-queueserver
+    - bluesky-queueserver-api
+    - bluesky-widgets
+    - bluesky-adaptive
+    - bluesky >=1.8.1
+    - ophyd >=1.6.3
+    - pcdsdevices  # For extra signal types
+    - pydm >=1.18.0
+    - typhos
+    - p4p
+    - tiled[client] >= 0.1.0b6  # Make sure we have pydantic2 support
+    - xarray !=2022.6.0  # incompatible with numpy=1.20
+    - ipython
+    - ipykernel
+    - jupyter
+    - jupyterlab
+    - notebook
+    - pip
+    - psutil
+    - numba>=0.56  # Ensures 0.53 (broken) isn't installed
+    # This version of networkx has an importlib bug in it
+    - networkx < 3.3
+    # --- testing and quality assurance
+    - black >=24
+    - flake8
+    - pre-commit
+    - pylint
+    - pytest
+    - pytest-cov
+    - pytest-qt >=4.2.0
+    - pytest-xvfb
+    - pytest-mock
+    - pytest-asyncio
+    - caproto >=1.0.0
+    # Database management
+    - pymongo
+    - databroker-pack
+    - databroker==1.2.5    
+    # --- packaging and publishing
+    - build
+    - twine
+    - coverage
+    - poetry
+    - sphinx
+    - pandoc
+    - nbsphinx
+    - graphviz
+    - sphinxcontrib-napoleon
+    # --- general support packages
+    - bitshuffle
+    - h5py
+    - hdf5plugin
+    - imagecodecs-lite
+    - ipympl
+    - lxml
+    - pandas
+    - pint
+    - scikit-image
+    - xlrd
+    - peakutils
+    - pyarrow < 11.0.0  # Tempoary fix, remove once the libort missing symbol doesn't break CI  
+    # XES analysis packages
+    - scikit-learn
+    - kneed
+    # --- Extra Qt UI packages
+    - pyqtgraph
+    - qtawesome
+    - qasync
+

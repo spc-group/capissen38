@@ -21,11 +21,11 @@ class HavenMotor(Motor):
     """The default motor for haven movement."""
     def __init__(self, prefix: str, name="") -> None:
         # Add extra signals not defined in the ophyd_async Motor
-        self.description = epics_signal_rw(float, f"{prefix}.DESC")
+        self.description = epics_signal_rw(str, f"{prefix}.DESC")
         self.tweak_value = epics_signal_rw(float, f"{prefix}.TWV")
-        self.tweak_forward = epics_signal_rw(float, f"{prefix}.TWF")
-        self.tweak_reverse = epics_signal_rw(float, f"{prefix}.TWR")
-        self.soft_limit_violation = epics_signal_rw(float, f"{prefix}.LVIO")
+        self.tweak_forward = epics_signal_rw(int, f"{prefix}.TWF")
+        self.tweak_reverse = epics_signal_rw(int, f"{prefix}.TWR")
+        self.soft_limit_violation = epics_signal_rw(int, f"{prefix}.LVIO")
         # Finish initialization
         super().__init__(prefix=prefix, name=name)
 
