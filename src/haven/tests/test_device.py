@@ -1,8 +1,28 @@
-from ophyd import EpicsMotor, sim
+import pytest
 
-from haven.instrument.device import make_device
+from ophyd import EpicsMotor, sim
+from ophyd_async.epics.motor import Motor
+
+from haven.instrument.device import make_device, connect_devices
 from haven.instrument.load_instrument import load_simulated_devices
 from haven.instrument.motor import HavenMotor
+
+
+@pytest.mark.asyncio
+async def test_connect_devices():
+    motor = Motor("255idc:m1", name="motor")
+    new_motors = await connect_devices([motor], mock=True)
+    assert len(new_motors) == 1
+    assert new_motors[0] is motor
+
+
+@pytest.mark.asyncio
+async def test_connect_devices_with_registry(sim_registry):
+    motor = Motor("255idc:m1", name="motor")
+    await connect_devices([motor], mock=True, labels={"motors"}, registry=sim_registry)
+    # Check that we can find our devices in the registry
+    sim_registry.find(name="motor")
+    sim_registry.find(label="motors")
 
 
 def test_load_simulated_devices(sim_registry):

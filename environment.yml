@@ -23,7 +23,7 @@ channels:
 
 dependencies:
   # --- Python core packages
-  - python=3.9  # Until this is fixed in pydm: https://github.com/slaclab/pydm/issues/951
+  - python=3.10  # Until this is fixed in pydm: https://github.com/slaclab/pydm/issues/951
   - ipython
   - ipykernel
   - jupyter
@@ -97,9 +97,7 @@ dependencies:
   - pydm >=1.18.0
   - typhos
   - p4p
-  - tiled-server
-  - tiled-client >= 0.1.0a106  # 2023-10-02 to get new Cache() behavior
-  - pydantic >=1.8.2,<2  # tiled fails with pydantic 2
+  - tiled-client >= 0.1.0b6  # Make sure we have pydantic2 support
   - xarray !=2022.6.0  # incompatible with numpy=1.20
 
   # --- user-requested packages
@@ -129,9 +127,10 @@ dependencies:
     - apsbss
     - time-machine
     - autoapi
+    - ophyd-async >= 0.5.0
     - pytest-mongodb
     - StrEnum
-    - ophyd-registry >= 1.2.1
+    - ophyd-registry >= 1.3
     - xraydb >=4.5.0
     - pytest-timeout  # Get rid of this if tests are not hanging
     - git+https://github.com/pcdshub/pcdsdevices

@@ -6,40 +6,31 @@ from typing import Mapping, Sequence
 from apstools.utils.misc import safe_ophyd_name
 from ophyd import Component as Cpt
 from ophyd import EpicsMotor, EpicsSignal, EpicsSignalRO
+from ophyd_async.epics.motor import Motor
+from ophyd_async.epics.signal import epics_signal_r, epics_signal_rw, epics_signal_x
 
 from .._iconfig import load_config
-from .device import make_device, resolve_device_names
+from .device import make_device, resolve_device_names, connect_devices
 from .instrument_registry import InstrumentRegistry
 from .instrument_registry import registry as default_registry
 
 log = logging.getLogger(__name__)
 
 
-class HavenMotor(EpicsMotor):
-    """The default motor for haven movement.
-
-    Returns to the previous value when being unstaged.
-    """
-
-    description = Cpt(EpicsSignal, ".DESC", kind="omitted")
-    tweak_value = Cpt(EpicsSignal, ".TWV", kind="omitted")
-    tweak_forward = Cpt(EpicsSignal, ".TWF", kind="omitted", tolerance=2)
-    tweak_reverse = Cpt(EpicsSignal, ".TWR", kind="omitted", tolerance=2)
-    motor_stop = Cpt(EpicsSignal, ".STOP", kind="omitted", tolerance=2)
-    soft_limit_violation = Cpt(EpicsSignalRO, ".LVIO", kind="omitted")
-
-    def stage(self):
-        super().stage()
-        # Save starting position to restore later
-        self._old_value = self.user_readback.value
-
-    def unstage(self):
-        super().unstage()
-        # Restore the previously saved position after the scan ends
-        self.set(self._old_value, wait=True)
+class HavenMotor(Motor):
+    """The default motor for haven movement."""
+    def __init__(self, prefix: str, name="") -> None:
+        # Add extra signals not defined in the ophyd_async Motor
+        self.description = epics_signal_rw(float, f"{prefix}.DESC")
+        self.tweak_value = epics_signal_rw(float, f"{prefix}.TWV")
+        self.tweak_forward = epics_signal_rw(float, f"{prefix}.TWF")
+        self.tweak_reverse = epics_signal_rw(float, f"{prefix}.TWR")
+        self.soft_limit_violation = epics_signal_rw(float, f"{prefix}.LVIO")
+        # Finish initialization
+        super().__init__(prefix=prefix, name=name)
 
 
-def load_motors(
+async def load_motors(
     config: Mapping = None, registry: InstrumentRegistry = default_registry
 ) -> Sequence:
     """Load generic hardware motors from IOCs.
@@ -61,16 +52,16 @@ def load_motors(
     Returns
     =======
     devices
-      The newly create EpicsMotor devices.
+      The newly create motor devices.
 
     """
     if config is None:
         config = load_config()
     # Build up definitions of motors to load
     defns = []
-    for section_name, config in config.get("motor", {}).items():
-        prefix = config["prefix"]
-        num_motors = config["num_motors"]
+    for section_name, cfg in config.get("motor", {}).items():
+        prefix = cfg["prefix"]
+        num_motors = cfg["num_motors"]
         log.info(
             f"Preparing {num_motors} motors from IOC: " f"{section_name} ({prefix})"
         )
@@ -98,13 +89,14 @@ def load_motors(
     else:
         log.debug(f"No duplicated motors detected out of {len(defns)}")
     # Resolve the scaler channels into ion chamber names
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        # No loop, so make a new one
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    loop.run_until_complete(resolve_device_names(defns))
+    # try:
+    #     loop = asyncio.get_running_loop()
+    # except RuntimeError:
+    #     # No loop, so make a new one
+    #     loop = asyncio.new_event_loop()
+    #     asyncio.set_event_loop(loop)
+    # loop.run_until_complete(resolve_device_names(defns))
+    await resolve_device_names(defns)
     # Create the devices
     devices = []
     missing_channels = []
@@ -117,10 +109,9 @@ def load_motors(
             missing_channels.append(defn["prefix"])
         else:
             # Create the device
-            labels = {"motors", "extra_motors", "baseline", defn["ioc_name"]}
             name = safe_ophyd_name(defn["name"])
             devices.append(
-                make_device(HavenMotor, prefix=defn["prefix"], name=name, labels=labels)
+                HavenMotor(prefix=defn["prefix"], name=name)
             )
     # Notify about motors that have no name
     if len(missing_channels) > 0:
@@ -133,6 +124,8 @@ def load_motors(
         msg += ", ".join([prefix for prefix in unnamed_channels])
         warnings.warn(msg)
         log.warning(msg)
+    # Connect to devices
+    devices = await connect_devices(devices, labels={"motors", "extra_motors", "baseline"}, mock=not config['beamline']['is_connected'], registry=registry)
     return devices
 
 

@@ -8,6 +8,7 @@ from caproto import CaprotoTimeoutError
 from caproto.asyncio.client import Context
 from ophyd import Component, Device, K
 from ophyd.sim import make_fake_device
+from ophyd_async.core import NotConnected
 
 from .._iconfig import load_config
 
@@ -50,6 +51,35 @@ def titelize(name):
     for orig, new in replacements.items():
         title = title.replace(orig, new)
     return title
+
+
+async def connect_devices(devices, mock=False, timeout=10.0, labels=None, registry=None):
+    """Ensure that a bunch of ophyd_async devices are connected.
+
+    Returns
+    =======
+    connected_devices
+      Those entries in *devices* that were properly connected.
+
+    """
+    aws = (device.connect(mock=mock, timeout=timeout) for device in devices)
+    results = await asyncio.gather(*aws, return_exceptions=True)
+    # Filter out the disconnected devices
+    new_devices = []
+    for device, result in zip(devices, results):
+        if result is None:
+            log.debug(f"Successfully connected device {device.name}")
+            new_devices.append(device)
+        elif isinstance(result, NotConnected):
+            log.info(f"Could not connect device {device.name}: {result}")
+        else:
+            # Unexpected exception, raise it so it can be handled
+            raise result
+    # Register connected devices with the registry
+    if registry is not None:
+        for device in new_devices:
+            registry.register(device, labels=labels)
+    return new_devices
 
 
 async def aload_devices(*coros):
