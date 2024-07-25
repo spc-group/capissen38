@@ -14,7 +14,7 @@ from ophyd.areadetector.plugins import (
 from ophyd_async.epics.adaravis import (
     AravisDetector as AravisDetectorBase,
     AravisDriverIO as AravisDriverIOBase,
-    AravisController,
+    AravisController as AravisControllerBase,
 )
 from ophyd_async.core import YMDPathProvider, UUIDFilenameProvider, SubsetEnum
 from ophyd_async.epics.signal import epics_signal_rw_rbv, epics_signal_r
@@ -45,6 +45,14 @@ __all__ = ["AravisDetector", "load_cameras"]
 
 
 AravisTriggerSource = SubsetEnum["Software", "Line1"]
+
+
+class AravisController(AravisControllerBase):
+    def _get_trigger_info(self, *args, **kwargs):
+        mode, source = super()._get_trigger_info(*args, **kwargs)
+        # Convert "Freerun" mode to "Software" mode
+        source = "Software" if source == "Freerun" else source
+        return mode, source
 
 
 class AravisDriverIO(AravisDriverIOBase):
