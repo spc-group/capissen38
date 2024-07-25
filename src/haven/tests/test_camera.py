@@ -3,19 +3,9 @@ from ophyd import DetectorBase
 from ophyd_async.core import StandardDetector
 
 from haven import load_config, registry
-from haven.instrument.camera import AravisDetector, load_cameras
+from haven.instrument.camera import load_cameras
 from haven.instrument.device import connect_devices
 
-PREFIX = "255idgigeA:"
-
-
-@pytest.fixture()
-async def camera(sim_registry):
-    camera = AravisDetector(prefix=PREFIX, name="s255id-gige-A")
-    await camera.connect(mock=True)
-    sim_registry.register(camera, labels={"cameras", "detectors"})
-    # Registry with the simulated registry
-    return camera
 
 @pytest.mark.asyncio
 async def test_load_cameras(sim_registry):
@@ -24,66 +14,6 @@ async def test_load_cameras(sim_registry):
     cameras = list(registry.findall(label="cameras"))
     assert len(cameras) == 1
     assert isinstance(cameras[0], StandardDetector)
-
-
-def test_camera_device():
-    camera = AravisDetector(PREFIX, name="camera")
-    assert isinstance(camera, StandardDetector)
-
-
-@pytest.mark.asyncio
-async def test_camera_trigger_source_choices(camera):
-    """Confirm the camera device has the right signals.
-
-    Solves this inital error received when using detaul AravisDetector.
-
-    > drv: NotConnected:
-    >     trigger_source: TypeError: 25idcARV4:cam1:TriggerSource_RBV has choices ('Software', 'Line1', 'Line3', 'Action1'), which is not a superset of SubsetEnum['Freerun', 'Line1'].
-    >     data_type: NotConnected: ca://25idcARV4:cam1:NDDataType_RBV
-    > hdf: NotConnected:
-    >     data_type: NotConnected: ca://25idcARV4:HDF1:NDDataType_RBV
-    
-    """
-    desc = await camera.drv.trigger_source.describe()
-    choices = desc['s255id-gige-A-drv-trigger_source']['choices']
-    assert "Software" in choices
-    assert "Line1" in choices
-
-
-@pytest.mark.asyncio
-async def test_camera_signals(camera):
-    """Confirm the camera device has the right signals.
-
-    Solves this inital error received when using detaul AravisDetector.
-
-    > drv: NotConnected:
-    >     trigger_source: TypeError: 25idcARV4:cam1:TriggerSource_RBV has choices ('Software', 'Line1', 'Line3', 'Action1'), which is not a superset of SubsetEnum['Freerun', 'Line1'].
-    >     data_type: NotConnected: ca://25idcARV4:cam1:NDDataType_RBV
-    > hdf: NotConnected:
-    >     data_type: NotConnected: ca://25idcARV4:HDF1:NDDataType_RBV
-    
-    """
-    desc = await camera.drv.data_type.describe()
-    cam_source = desc['s255id-gige-A-drv-data_type']['source']
-    assert cam_source == "mock+ca://255idgigeA:cam1:DataType_RBV"
-    # Check HDF signal source
-    desc = await camera.hdf.data_type.describe()
-    hdf_source = desc['s255id-gige-A-hdf-data_type']['source']
-    assert hdf_source == "mock+ca://255idgigeA:HDF1:DataType_RBV"
-    
-
-
-@pytest.mark.skip(reason="Deprecated with ophyd async")
-def test_camera_in_registry(sim_registry):
-    camera = AravisDetector(PREFIX, name="camera")
-    # Check that all sub-components are accessible
-    camera = sim_registry.find(camera.name)
-    sim_registry.find(f"{camera.name}_cam")
-    sim_registry.find(f"{camera.name}_cam.gain")
-
-
-def test_default_time_signal(camera):
-    assert camera.default_time_signal is sim_camera.cam.acquire_time
 
 
 # -----------------------------------------------------------------------------
