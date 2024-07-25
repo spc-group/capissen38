@@ -4,6 +4,7 @@ import databroker
 from bluesky import RunEngine as BlueskyRunEngine
 from bluesky import suspenders
 from bluesky.callbacks.best_effort import BestEffortCallback
+from bluesky.utils import ProgressBarManager, register_transform
 
 from .exceptions import ComponentNotFound
 from .instrument.instrument_registry import registry
@@ -26,8 +27,8 @@ def save_data(name, doc):
     catalog.v1.insert(name, doc)
 
 
-def run_engine(connect_databroker=True, use_bec=True) -> BlueskyRunEngine:
-    RE = BlueskyRunEngine()
+def run_engine(connect_databroker=True, use_bec=True, **kwargs) -> BlueskyRunEngine:
+    RE = BlueskyRunEngine(**kwargs)
     # Add the best-effort callback
     if use_bec:
         RE.subscribe(BestEffortCallback())
@@ -47,6 +48,9 @@ def run_engine(connect_databroker=True, use_bec=True) -> BlueskyRunEngine:
                 tripped_message="Shutter permit revoked.",
             )
         )
+    # Make the runengine more spec-like
+    RE.waiting_hook = ProgressBarManager()
+    register_transform("RE", prefix="<")
     # Install databroker connection
     if connect_databroker:
         RE.subscribe(save_data)

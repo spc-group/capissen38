@@ -179,7 +179,7 @@ def tiled_client(entry_node=None, uri=None, cache_filepath=None):
     # Create the client
     if uri is None:
         uri = config["database"]["tiled"]["uri"]
-    client_ = from_uri(uri, "dask", cache=cache)
+    client_ = from_uri(uri, "dask")
     if entry_node is None:
         entry_node = config["database"]["tiled"]["entry_node"]
     client_ = client_[entry_node]
