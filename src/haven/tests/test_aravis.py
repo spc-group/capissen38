@@ -1,6 +1,6 @@
 import pytest
 from ophyd import DetectorBase
-from ophyd_async.core import StandardDetector
+from ophyd_async.core import StandardDetector, StandardReadable
 from bluesky.protocols import Readable
 
 from haven import load_config, registry
@@ -20,12 +20,20 @@ async def camera(sim_registry):
 
 
 def test_device(camera):
-    assert isinstance(camera, StandardDetector)
+    assert isinstance(camera, StandardReadable)
+    assert isinstance(camera.det, StandardDetector)
 
 
-# def test_stats(camera):
-#     assert isinstance(camera, Readable)
-#     assert hasattr(camera, "stats")
+@pytest.mark.asyncio
+async def test_stats(camera):
+    assert isinstance(camera, Readable)
+    assert hasattr(camera, "stats")
+    # Spot-check some signals are in the describe doc
+    desc = await camera.describe()
+    source = desc["s255id-gige-A-stats-0-max"]["source"]
+    assert source == "mock+ca://255idgigeA:Stats1:MaxValue_RBV"
+    # Check some hints
+    assert camera.hints == 0
 
 
 @pytest.mark.asyncio
