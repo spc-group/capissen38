@@ -65,19 +65,18 @@ class EnergyPositioner(Positioner):
         undulator_prefix: str,
         name: str = "energy",
     ):
-        with self.add_children_as_readables():
-            self.monochromator = Monochromator(monochromator_prefix)
-            self.undulator = PlanarUndulator(undulator_prefix)
-            # Derived positioner signals
-            self.setpoint = derived_signal_rw(
-                float,
-                derived_from={
-                    "mono": self.monochromator.energy.user_setpoint,
-                    "undulator": self.undulator.energy.setpoint,
-                },
-                forward=self.set_energy,
-                inverse=self.get_energy,
-            )
+        self.monochromator = Monochromator(monochromator_prefix)
+        self.undulator = PlanarUndulator(undulator_prefix)
+        # Derived positioner signals
+        self.setpoint = derived_signal_rw(
+            float,
+            derived_from={
+                "mono": self.monochromator.energy.user_setpoint,
+                "undulator": self.undulator.energy.setpoint,
+            },
+            forward=self.set_energy,
+            inverse=self.get_energy,
+        )
         with self.add_children_as_readables(StandardReadableFormat.HINTED_SIGNAL):
             self.readback = derived_signal_r(
                 float,

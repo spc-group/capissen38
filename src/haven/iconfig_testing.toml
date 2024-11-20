@@ -302,6 +302,11 @@ num_elements = 4
 name = "filter_bank0"
 prefix = "255idc:pfcu0:"
 
+[[ filter_bank0 ]]
+class = "pfcu4"
+prefix = "255idc:pfcu0:"
+
+
 [[ pfcu4 ]]
 name = "filter_bank1"
 prefix = "255idc:pfcu1:"

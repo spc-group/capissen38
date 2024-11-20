@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 
+import numpy as np
 import databroker  # noqa: F401
 import matplotlib.pyplot as plt  # noqa: F401
 from bluesky import plan_stubs as bps  # noqa: F401
@@ -22,6 +23,7 @@ from rich.panel import Panel
 from rich.theme import Theme
 
 import haven  # noqa: F401
+from haven.xdi_export import XDIWriter
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -30,8 +32,8 @@ log = logging.getLogger(__name__)
 # Create a run engine
 RE = haven.run_engine(
     connect_databroker=True,
-    call_returns_result=True,
-    use_bec=True,
+    call_returns_result=False,
+    use_bec=False,
 )
 
 # Add metadata to the run engine
@@ -66,10 +68,26 @@ try:
     ion_chambers = registry.findall("ion_chambers", allow_none=True)
 except ComponentNotFound as exc:
     log.exception(exc)
-try:
-    energy = registry['energy']
-except ComponentNotFound as exc:
-    log.exception(exc)
+for cpt in registry._objects_by_name.values():
+    # Replace spaces and other illegal characters in variable name
+    # name = re.sub('\W|^(?=\d)','_', cpt.name)
+    name = haven.sanitize_name(cpt.name)
+    # Add the device as a variable in module's globals
+    globals().setdefault(name, cpt)
+
+# Default tiled client
+client = haven.tiled_client()
+
+# Extra startup script for Jerry's beamtime
+import pyqtgraph as pg
+def view_images(uid):
+    run = client[uid]
+    data = run['primary/data']
+    im = np.sum(data['eiger_image'].read().compute(), axis=1)
+    return pg.image(im)
+writer = XDIWriter("/net/s25data/export/25-ID-D/commissioning/2024-11-13-asymmotron/{day}{hour}{minute}_{sample_name}_{scan_id}.csv", metadata_keys=["purpose"], sep=",")
+# RE.subscribe(writer)
+detectors = [eiger, I0, IpreKB, analyzer0, analyzer1, analyzer2, analyzer3]
 
 # Print helpful information to the console
 custom_theme = Theme(

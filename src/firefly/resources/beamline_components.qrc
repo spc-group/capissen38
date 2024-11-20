@@ -8,6 +8,9 @@
     <file>slits_3d.png</file>
     <file>filter.png</file>
   </qresource>
+  <qresource prefix="Asymmotron">
+    <file>asymmotron.png</file>
+  </qresource>
   <qresource prefix="xray_source">
     <file>insertion_device.png</file>
   </qresource>

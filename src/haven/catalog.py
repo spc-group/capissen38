@@ -179,11 +179,12 @@ def tiled_client(
     if cache_filepath is None:
         cache_filepath = config["database"].get("tiled", {}).get("cache_filepath", "")
         cache_filepath = cache_filepath or None
-    if os.access(cache_filepath, os.W_OK):
+    if cache_filepath is None:
+        cache = None
+    elif os.access(cache_filepath, os.W_OK):
         cache = ThreadSafeCache(filepath=cache_filepath)
     else:
         warnings.warn(f"Cache file is not writable: {cache_filepath}")
-        cache = None
     # Create the client
     if uri is None:
         uri = config["database"]["tiled"]["uri"]

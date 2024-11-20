@@ -17,6 +17,7 @@ from ophydregistry import Registry
 from .devices.aerotech import AerotechStage
 from .devices.aps import ApsMachine
 from .devices.area_detector import make_area_detector
+from .devices.asymmotron import Asymmotron, Analyzer
 from .devices.beamline_manager import BeamlineManager
 from .devices.detectors.aravis import AravisDetector
 from .devices.detectors.sim_detector import SimDetector
@@ -414,6 +415,8 @@ beamline = HavenInstrument(
         "sim_detector": SimDetector,
         "camera": AravisDetector,
         "pss_shutter": PssShutter,
+        "asymmotron": Asymmotron,
+        "analyzer": Analyzer,
         # Threaded ophyd devices
         "blade_slits": BladeSlits,
         "aperture_slits": ApertureSlits,
