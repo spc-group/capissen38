@@ -19,6 +19,7 @@ def sim_det(sim_registry):
 def test_signals(sim_det):
     assert sim_det.drv.prefix == "255idSimDet:cam1:"
     assert type(sim_det.drv).acquire.suffix == "Acquire"
+    assert type(sim_det.drv).acquire_time.suffix == "AcquireTime"
     assert type(sim_det.drv).detector_state.suffix == "DetectorState_RBV"
     assert type(sim_det.drv).acquire_busy.suffix == "AcquireBusy"
     assert type(sim_det.drv).gain.suffix == "Gain"
