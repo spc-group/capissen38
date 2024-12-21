@@ -87,7 +87,7 @@
       <item>
        <widget class="QCheckBox" name="shutter_checkbox">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Close the experimental experimental hutch shutter prior to recording dark current. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;This feature is disabled pending availability of shutter controls.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -99,6 +99,13 @@
          <bool>true</bool>
         </property>
         <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="shutter_combobox">
+        <property name="enabled">
          <bool>false</bool>
         </property>
        </widget>
@@ -224,5 +231,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>shutter_checkbox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>shutter_combobox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>53</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

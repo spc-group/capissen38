@@ -286,10 +286,9 @@ iocs = {ioc255idb = "ioc255idb:", ioc255idc = "ioc255idc:"}
 # prefix = "20xmap8:"
 # num_elements = 4
 
-[[ xspress ]]
-name = "vortex_me4_xsp"
+[[ xspress3 ]]
+name = "vortex_me4"
 prefix = "vortex_me4_xsp:"
-num_elements = 4
 
 
 # Filter boxes

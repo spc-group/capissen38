@@ -41,7 +41,7 @@ dependencies:
     - aioca
     - aiokafka
     - asynctest
-    - apsbss
+    - apsbss < 2.0
     - time-machine
     - rich
     - autoapi

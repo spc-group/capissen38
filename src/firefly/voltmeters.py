@@ -71,6 +71,28 @@ class VoltmetersDisplay(display.FireflyDisplay):
             # Connect the details button signal
             details_slot = partial(self.details_window_requested.emit, ic.name)
             row.details_button.clicked.connect(details_slot)
+        # Remove old shutters from the combobox
+        for idx in range(self.ui.shutter_combobox.count()):
+            self.ui.shutter_combobox.removeItem(idx)
+
+        # Decide which shutters we should show (only those that can be opened/closed)
+        def is_controllable(shtr):
+            can_open = getattr(shtr, "allow_open", True)
+            can_close = getattr(shtr, "allow_close", True)
+            return can_open and can_close
+
+        shutters = registry.findall("shutters", allow_none=True)
+        shutters = [shtr for shtr in shutters if is_controllable(shtr)]
+        has_shutters = bool(len(shutters))
+        # Add the shutters to the shutter combobox
+        if has_shutters:
+            self.ui.shutter_checkbox.setEnabled(True)
+            for shutter in shutters:
+                self.ui.shutter_combobox.addItem(shutter.name)
+        else:
+            log.warning("No shutters found, disabling checkbox.")
+            self.ui.shutter_checkbox.setEnabled(False)
+            self.ui.shutter_checkbox.setCheckState(False)
 
     def update_queue_status(self, status):
         super().update_queue_status(status)
@@ -104,12 +126,13 @@ class VoltmetersDisplay(display.FireflyDisplay):
 
         """
         # Determine which shutters to close
-        shutters = []
+        kwargs = {}
         if self.ui.shutter_checkbox.isChecked():
-            shutters.append("experiment_shutter")
+            shutter_name = self.ui.shutter_combobox.currentText()
+            kwargs["shutters"] = [shutter_name]
         # Construct the plan
         ic_names = [ic.name for ic in self.ion_chambers]
-        item = BPlan("record_dark_current", ic_names, shutters=shutters)
+        item = BPlan("record_dark_current", ic_names, **kwargs)
         # Send it to the queue server
         self.queue_item_submitted.emit(item)
 

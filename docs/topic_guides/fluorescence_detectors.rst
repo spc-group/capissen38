@@ -5,193 +5,127 @@ Fluorescence Detectors
 .. contents:: Table of Contents
     :depth: 3
 
+.. warning::
+
+   Fluorescence detectors are in the process of being transitioned
+   from the older, threaded Ophyd library to *ophyd-async*. The
+   documentation below **should be accurate for Xspress3** devices,
+   but **not for DXP** based devices as those have not been
+   transitioned to ophyd-async yet.
+
+Haven supports two varieties of fluorescence detector:
+
+- Xspress3
+- DXP (XIA's XMAP, Saturn, and Mercury)
+
+The support for these two electronics is very different, but the basic
+idea is the same. To acquire a frame, each detector will first
+configure its file writer, then trigger the detector. This will result
+in a file on disk with the measured spectra from all elements in the
+detector. The data can then be retrieved with something like Tiled,
+which can open the data file and serve the enclosed data. All these
+steps happen out-of-sight of the user, provided the detector is used
+with the updated Ophyd-async devices.
+
+
 Specifying Detectors in Configuration
 =====================================
 
-To add new detectors to the beamline, new sections should be added the
-*iconfig.toml* file. Each section should be labeled
-``[<class>.<name>]``, where ``<class>`` specifies which interface is
-present (``"dxp"`` for XIA DXP or ``"xspress"`` for Xspress3), and
-``<name>`` becomes the device name. *prefix* is the PV prefix for the
-EPICS IOC, and *num_elements* specifies the number of detector
-elements.
+To add new detectors to the beamline, new sections should be added to
+the *iconfig.toml* file. Each section should be labeled ``[[ <class>
+]]``, where ``<class>`` specifies which interface is present
+(``"dxp"`` for XIA DXP/XMAP or ``"xspress3"`` for Xspress3).
+
+The following parameters can then be included:
+
+*name*
+  The python-friendly name to use for this device.
+*prefix*
+  The PV prefix for the EPICS IOC, including the trailing colon.
 
 .. code-block:: toml
+   :caption: example_iconfig.toml		
+		
+   [[ dxp ]]
+   prefix = "20xmap4b:"
+   name = "vortex_me4"
 
-   [dxp.vortex_me4]
+   [[ xspress ]]
+   prefix = "dp_xsp3_2:"
+   name = "vortex_ex"
 
-   prefix = "20xmap4b"
-   num_elements = 4
-
-   [xspress.vortex_ex]
-
-   prefix = "dp_xsp3_2"
-   num_elements = 1
-
-
-The device can then be retrieved from the instrument registry for use
-in bluesky plans:
+The device can then be retrieved by its name for use in Bluesky plans.
 
 .. code-block:: python
    
    import haven
 
    # Get individual fluorescence detectors
-   my_detector = haven.registry.find(name="vortex_me4")
-   another_detector = haven.registry.find(name="vortex_ex")
+   vortex_4elem = haven.beamline.devices["vortex_me4"]
+   vortex_1elem = haven.beamline.devices["vortex_ex"]
 
    # Get all fluorescence detectors of any kind (e.g. DXP, Xspress3, etc.)
-   detectors = haven.registry.findall(label="fluorescence_detectors")
+   detectors = haven.beamline.devices.findall(label="fluorescence_detectors")
 
 
-Common Behavior
-===============
+Why can't I…
+############
 
-Fluorescence detectors are implemented as
-:py:class:`~haven.devices.xspress.Xspress3Detector` and
-:py:class:`~haven.devices.dxp.DxpDetector` Ophyd device
-classes. They are written to have a common Ophyd interface so that
-clients (e.g. Firefly) can use fluorescence detectors interchangeably.
+Previously, some steps were performed during data acquisition by the
+IOC that have now been moved to other parts of the system. These
+decisions were made largely to simplify data acquisition and ensure
+this process happens smoothly.
 
-Creating Devices
-----------------
+…set regions of interest (ROIs)?
+--------------------------------
 
-By default, devices created from these device classes include one MCA
-element, available on the ``mcas`` attribute. The **recommended way to
-create a fluorescence detector** device directly is with the
-:py:func:`~haven.devices.dxp.load_xspress()` and
-:py:func:`~haven.devices.dxp.load_dxp()` factory functions:
+ROIs should now be done during analysis prior to visualization using
+tools like xray-larch.
 
-.. code-block:: python
-   
-   from haven import load_xspress
-   
-   det = load_xspress(name="vortex_me4",
-		      prefix="20xmap4b",
-		      num_elements=4)
-   det.wait_for_connection()
+ROIs are typically set so that each one roughly corresponds to the
+intensity of a given emission line (e.g. Fe–K). Doing this during data
+acquisition is convenient for later visualization, since no specialized
+plotting tools are needed. However, there are a few drawbacks.
 
-Alternately, to make a dedicated subclass with a specific number of
-elements, override the ``mcas`` attributes:
+Setting ROIs during acquisition mixes measured data with processed
+data, giving the impression that the Fe–K emission was actually
+measured, when in reality a rough approximation was performed. This
+further gives the impression that no further analysis is needed. In
+reality, a full spectrum analysis such as that available in xray-larch
+is required to properly derive estimates of the elemental emission
+signals. This analysis will account for background subtraction and
+multiple overlapping peaks, among other things.
 
-.. code-block:: python
+Additionally, calculating ROIs adds additional time to each detector
+frame acquisition. This may introduce a race condition. If plugins are
+not set to block, then the PVs for the various plugins may not be
+updated by the time the data acquisition system thinks the frame is
+done. The only reliable means to ensure plugins have completed
+processing is to set them to block, which adds additional time to each
+acquisition. Given that ROI calculations are trivial for a full
+dataset, this is best left to the analaysis and visualization phases
+of the measurement.
 
-    from haven.devices import xspress
+…disable individual elements?
+-----------------------------
 
-    class Xspress4Element(xspress.Xspress3Detector):
-        mcas = xspress.DDC(
-            xspress.add_mcas(range_=range(4)),
-            kind=(Kind.normal | Kind.config),
-            default_read_attrs=["mca0", "mca1", "mca2", "mca3"],
-            default_configuration_attrs=["mca0", "mca1", "mca2", "mca3"],
-        )
+Ophyd-async does not consider the elements of the detector
+individually. The detector is responsible for collecting its own data
+and saving it to disk. As a consequence, it is not possible to enable
+or disable individual elements during acquisition. Since no data
+reduction or analysis takes place during acquisition, this should not
+have any impact on the results. Instead, the entire spectrum for each
+element is saved to disk using the IOCs file writer plugins. **Whether
+to include a given element** is then a decision that must be made
+during analysis and visualization.
 
-Managing Elements and ROIs
+…view the summed spectrum?
 --------------------------
 
-.. note::
-
-   Not all fluorescence detector IOCs agree on how to number MCAs and
-   ROIs. To maintain a unified interface, Haven uses the convention to
-   start counting from 0 regardless of the IOC. As such, the haven
-   device signals may be misaligned with the PVs they map to.
-
-   For example on a DXP-based IOC, an ophyd signal
-   ``det.mcas.mca1.rois.roi1`` will have a PV like
-   ``xmap_4b:MCA1.R0``.
-
-By default all elements (MCAs) will collect spectra, and **all ROIs
-will save aggregated values**. While this setup ensures that no data
-are lost, it also creates a large number of signals in the database
-and may make analysis tedious. Most likely, only some ROIs are
-meaningful, so those signals can be identified by giving them the
-``hinted`` kind.
-
-https://blueskyproject.io/ophyd/user/reference/signals.html#kind
-
-During the staging phase (in its
-:py:meth:`~have.instrument.fluorescence_detector.ROIMixin.stage()`
-method), each ROI will check this signal and if it is true, then it
-**will change its kind** to ``hinted``. When unstaging, the signal is
-reset to its original value.
-
-Individual **ROIs can be marked for hinting** by setting the
-:py:attr:`~haven.devices.xspress.ROI.use` signal:
-
-.. code-block:: python
-   
-    from haven import load_xspress
-
-    # Create a Xspress3-based fluorescence detector
-    det = load_xspress(name="vortex_me4",
-		       prefix="20xmap4b",
-    		       num_elements=4)
-    
-    # Mark the 3rd element, 2nd ROI (0-indexed)
-    det.mcas.mca2.rois.roi1.use.set(1)
-
-Behind the scenes, to track the state of
-:py:attr:`~haven.devices.xspress.ROI.use` we add a "~" to the start
-of the value in the
-:py:meth:`~have.instrument.fluorescence_detector.label` signal if
-:py:meth:`~have.instrument.fluorescence_detector.use` is false.
-		
-
-Marking multiple ROIs on multiple elements is possible using the
-following methods on the
-:py:class:`~haven.devices.fluorescence_detector.XRFMixin` object:
-
-- :py:meth:`~haven.devices.fluorescence_detector.XRFMixin.enable_rois`
-- :py:meth:`~haven.devices.fluorescence_detector.XRFMixin.disable_rois`
-
-These methods accepts an optional sequence of integers for the indices
-of the elements or ROIs to enable/disable. If not ROIs or elements are
-specified, the methods will operate on all ROIs or elements
-(e.g. ``det.disables_rois()`` will disable all ROIs on all elements.
-
-.. code-block:: python
-   
-    from haven import load_xspress
-
-    # Create a Xspress3-based fluorescence detector
-    det = load_xspress(name="vortex_me4",
-		       prefix="20xmap4b",
-    		       num_elements=4)
-    
-    # Mark all ROIs on the third and fifth elements
-    det.enable_rois(elements=[2, 4])
-
-    # Unmark the first, eight, and fifteeth elements
-    det.enable_rois(rois=[0, 7, 14])
-
-    # Unmark the third ROI on the second element
-    det.enable_rois(rois=[2], elements=[1])
-
-Xspress 3
-=========
-
-Support for Quantum Detectors' Xspress3 Family of detectors is
-provided by the :py:class:`~haven.devices.xspress.Xspress3Detector`
-base class. The EPICS support for Xspress3 detectors is based on the
-EPICS area detector module, and so the
-:py:class:`~haven.devices.xspress.Xspress3Detector` is a customized
-:py:class:`ophyd.DetectorBase`.
-
-XIA DXP (XMAP)
-==============
-
-DXP (XMAP, Mercury, Saturn) electronics use the bluesky multi-channel
-analyzer (MCA) device, packaged in Haven as the
-:py:class:`~haven.devices.dxp.DxpDetector` class.
-
-The DXP electronics are **not yet compatible** with :doc:`fly-scanning
-<fly_scanning>`. The :py:class:`~haven.devices.dxp.DxpDetector`
-does implement the
-:py:meth:`~haven.devices.dxp.DxpDetector.kickoff()` and
-:py:meth:`~haven.devices.dxp.DxpDetector.complete()` methods, but
-does not yet handle data collection. This is because the data are
-reported as a byte stream that must first be decoded. The DXP manual
-describes the structure of this byte-stream, so in principle it is
-possible to parse this in the
-:py:meth:`~haven.devices.dxp.DxpDetector.collect()` method.
-
+Since the data coming from the fluorescence detector are effectively
+an area detector image, it is simple to calculate the summed spectrum
+from all the spectra of the individual elements. While the EPICS IOCs
+typically include a PV for this summed spectrum, it is not trivial to
+include this summed spectrum in the resulting HDF5 file. Instead,
+plotting tools, like Haven's run browser, should include a feature for
+dimensionality reduction.

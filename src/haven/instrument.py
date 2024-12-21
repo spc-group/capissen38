@@ -12,6 +12,7 @@ from .devices.area_detector import make_area_detector
 from .devices.beamline_manager import BeamlineManager
 from .devices.detectors.aravis import AravisDetector
 from .devices.detectors.sim_detector import SimDetector
+from .devices.detectors.xspress import Xspress3Detector
 from .devices.dxp import make_dxp_device
 from .devices.energy_positioner import EnergyPositioner
 from .devices.heater import CapillaryHeater
@@ -26,7 +27,6 @@ from .devices.slits import ApertureSlits, BladeSlits
 from .devices.stage import XYStage
 from .devices.table import Table
 from .devices.xia_pfcu import PFCUFilterBank
-from .devices.xspress import make_xspress_device
 
 log = logging.getLogger(__name__)
 
@@ -96,6 +96,7 @@ beamline = HavenInstrument(
         "sim_detector": SimDetector,
         "camera": AravisDetector,
         "pss_shutter": PssShutter,
+        "xspress3": Xspress3Detector,
         # Threaded ophyd devices
         "blade_slits": BladeSlits,
         "aperture_slits": ApertureSlits,
@@ -104,7 +105,6 @@ beamline = HavenInstrument(
         "synchrotron": ApsMachine,
         "robot": Robot,
         "pfcu4": PFCUFilterBank,  # <-- fails if mocked
-        "xspress": make_xspress_device,
         "dxp": make_dxp_device,
         "beamline_manager": BeamlineManager,
         "area_detector": make_area_detector,

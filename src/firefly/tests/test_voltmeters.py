@@ -1,5 +1,8 @@
+import asyncio
+
 import pytest
 from bluesky_queueserver_api import BPlan
+from ophyd_async.core import Device
 from pydm import widgets as PyDMWidgets
 from pydm.widgets.analog_indicator import PyDMAnalogIndicator
 from qtpy import QtWidgets
@@ -26,6 +29,19 @@ async def ion_chambers(sim_registry):
         sim_registry.register(ion_chamber)
         devices.append(ion_chamber)
     return devices
+
+
+@pytest.fixture()
+async def shutters(sim_registry):
+    front_end_shutter = Device(name="front_end_shutter")
+    front_end_shutter.allow_close = False
+    endstation_shutter = Device(name="endstation_shutter")
+    shutters = [front_end_shutter, endstation_shutter]
+    await asyncio.gather(*[d.connect(mock=True) for d in shutters])
+    for shutter in shutters:
+        shutter._ophyd_labels_ = {"shutters"}
+        sim_registry.register(shutter)
+    return shutters
 
 
 @pytest.fixture()
@@ -151,14 +167,66 @@ def test_auto_gain_plan_with_args(qtbot, voltmeters_display):
         display.ui.auto_gain_button.click()
 
 
+async def test_shutters_checkbox_no_shutters(voltmeters_display, sim_registry):
+    display = voltmeters_display
+    combobox = display.ui.shutter_combobox
+    checkbox = display.ui.shutter_checkbox
+    checkbox.setChecked(True)
+    # Update the state of the UI with no shutters
+    await display.update_devices(sim_registry)
+    # Ensure checkbox has been disabled
+    assert not checkbox.isEnabled()
+    assert not checkbox.checkState()
+    assert not display.ui.shutter_checkbox.setChecked(True)
+    combobox_items = [combobox.itemText(idx) for idx in range(combobox.count())]
+    assert len(combobox_items) == 0
+
+
+async def test_shutters_checkbox_with_shutters(
+    voltmeters_display,
+    sim_registry,
+    shutters,
+):
+    display = voltmeters_display
+    checkbox = display.ui.shutter_checkbox
+    combobox = display.ui.shutter_combobox
+    # Update the state of the UI with no shutters
+    await display.update_devices(sim_registry)
+    # Ensure checkbox has been enabled
+    assert checkbox.isEnabled()
+    # Check that shutters were added to the combobox
+    combobox_items = [combobox.itemText(idx) for idx in range(combobox.count())]
+    assert "front_end_shutter" not in combobox_items
+    assert "endstation_shutter" in combobox_items
+
+
 @pytest.mark.asyncio
 async def test_read_dark_current_plan(voltmeters_display, qtbot):
     display = voltmeters_display
-    display.ui.shutter_checkbox.setChecked(True)
+    display.ui.shutter_checkbox.setChecked(False)
     # Check that the correct plan was sent
-    expected_item = BPlan(
-        "record_dark_current", ["I0", "It"], shutters=["experiment_shutter"]
-    )
+    expected_item = BPlan("record_dark_current", ["I0", "It"])
+
+    def check_item(item):
+        return item.to_dict() == expected_item.to_dict()
+
+    # Click the run button and see if the plan is queued
+    with qtbot.waitSignal(
+        display.queue_item_submitted, timeout=1000, check_params_cb=check_item
+    ):
+        # Simulate clicking on the dark_current button
+        # display.ui.dark_current_button.click()
+        display.ui.record_dark_current()
+
+
+@pytest.mark.asyncio
+async def test_read_dark_current_plan_with_shutters(voltmeters_display, qtbot):
+    display = voltmeters_display
+    display.ui.shutter_checkbox.setChecked(True)
+    display.ui.shutter_combobox.setCurrentIndex(1)
+    # Check that the correct plan was sent
+    shutter_name = display.ui.shutter_combobox.itemText(1)
+    expected_item = BPlan("record_dark_current", ["I0", "It"], shutters=[shutter_name])
 
     def check_item(item):
         return item.to_dict() == expected_item.to_dict()
