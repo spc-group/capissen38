@@ -1,8 +1,4 @@
-from enum import IntEnum
-
 from ophyd import DetectorBase as OphydDetectorBase
-from ophyd import SimDetectorCam
-from apstools.devices import CamMixin_V34
 
 from .flyer_threaded import FlyerMixin
 

@@ -1,10 +1,7 @@
 from apstools.devices import CamMixin_V34, SingleTrigger_V34
-from ophyd import ADComponent as ADCpt, SimDetectorCam
-from ophyd.areadetector.plugins import (
-    ImagePlugin_V34,
-    OverlayPlugin_V34,
-    PvaPlugin_V34,
-)
+from ophyd import ADComponent as ADCpt
+from ophyd import SimDetectorCam
+from ophyd.areadetector.plugins import PvaPlugin_V34
 
 from .area_detectors_threaded import DetectorBase
 from .hdf_threaded import HDF5FilePlugin
@@ -28,5 +25,3 @@ class SimDetectorThreaded(SingleTrigger_V34, DetectorBase):
         "HDF1:",
         write_path_template="/tmp/",
     )
-
-

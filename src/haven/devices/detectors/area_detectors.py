@@ -1,7 +1,12 @@
 from pathlib import Path
 
-from ophyd_async.core import PathProvider, DeviceVector, SubsetEnum
-from ophyd_async.core import UUIDFilenameProvider, YMDPathProvider
+from ophyd_async.core import (
+    DeviceVector,
+    PathProvider,
+    SubsetEnum,
+    UUIDFilenameProvider,
+    YMDPathProvider,
+)
 from ophyd_async.epics.adcore._core_io import NDPluginBaseIO
 from ophyd_async.epics.core import epics_signal_rw_rbv
 
@@ -26,11 +31,13 @@ class OverlayPlugin(NDPluginBaseIO):
 
 
 class HavenDetector:
-    def __init__(self, *args, prefix: str, path_provider: PathProvider | None = None, **kwargs):
+    def __init__(
+        self, *args, prefix: str, path_provider: PathProvider | None = None, **kwargs
+    ):
         # Add additional non-data plugins
-        self.overlays = DeviceVector({
-            idx: OverlayPlugin(f"{prefix}Over1:{idx+1}:") for idx in range(8)
-        })
+        self.overlays = DeviceVector(
+            {idx: OverlayPlugin(f"{prefix}Over1:{idx+1}:") for idx in range(8)}
+        )
         # Determine a default path provider to use
         if path_provider is None:
             path_provider = default_path_provider()

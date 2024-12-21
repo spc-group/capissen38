@@ -53,6 +53,26 @@ async def test_camera_signals(camera):
     desc = await camera.hdf.data_type.describe()
     hdf_source = desc["s255id-gige-A-hdf-data_type"]["source"]
     assert hdf_source == "mock+ca://255idgigeA:HDF1:DataType_RBV"
+    # Signals needed for live viewing, etc
+    assert camera.drv.acquire.source == "mock+ca://255idgigeA:cam1:Acquire_RBV"
+    assert camera.drv.acquire_time.source == "mock+ca://255idgigeA:cam1:AcquireTime_RBV"
+    assert (
+        camera.drv.detector_state.source
+        == "mock+ca://255idgigeA:cam1:DetectorState_RBV"
+    )
+    # assert camera.drv.gain.source == "mock+ca://255idgigeA:cam1:Gain"
+    assert camera.hdf.file_path.source == "mock+ca://255idgigeA:HDF1:FilePath_RBV"
+    assert camera.hdf.file_name.source == "mock+ca://255idgigeA:HDF1:FileName_RBV"
+    # Overlays for showing annotations on-screen only
+    assert camera.overlays[0].shape.source == "mock+ca://255idgigeA:Over1:1:Shape_RBV"
+    assert (
+        camera.overlays[0].center_x.source == "mock+ca://255idgigeA:Over1:1:CenterX_RBV"
+    )
+    assert (
+        camera.overlays[0].center_y.source == "mock+ca://255idgigeA:Over1:1:CenterY_RBV"
+    )
+    assert camera.overlays[0].size_x.source == "mock+ca://255idgigeA:Over1:1:SizeX_RBV"
+    assert camera.overlays[0].size_y.source == "mock+ca://255idgigeA:Over1:1:SizeY_RBV"
 
 
 # -----------------------------------------------------------------------------

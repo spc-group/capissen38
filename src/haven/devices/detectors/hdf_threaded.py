@@ -9,7 +9,6 @@ from ophyd.areadetector.plugins import HDF5Plugin_V34
 from ..._iconfig import load_config
 
 
-
 class DynamicFileStore(Device):
     """File store mixin that alters the write_path_template based on
     iconfig values.

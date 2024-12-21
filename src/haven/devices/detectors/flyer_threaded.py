@@ -2,12 +2,12 @@ import time
 from collections import namedtuple
 from enum import IntEnum
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+from ophyd import Component as Cpt
+from ophyd import Device, Kind, Signal
 from ophyd.flyers import FlyerInterface
-from ophyd import Device, Signal, Component as Cpt, Kind
-from ophyd.status import StatusBase, SubscriptionStatus, Status
-
+from ophyd.status import Status, StatusBase, SubscriptionStatus
 
 fly_event = namedtuple("fly_event", ("timestamp", "value"))
 
@@ -128,6 +128,7 @@ class FlyerMixin(FlyerInterface, Device):
         dfs = []
         for sig, data in self._fly_data.items():
             df = pd.DataFrame(data, columns=["timestamps", sig])
+
             # Assign each datum an image number based on timestamp
             def get_image_num(ts):
                 """Get the image number taken closest to a given timestamp."""

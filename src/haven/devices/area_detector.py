@@ -7,7 +7,7 @@ from typing import Dict, Mapping
 
 import numpy as np
 import pandas as pd
-from apstools.devices import CamMixin_V34, SingleTrigger_V34
+from apstools.devices import SingleTrigger_V34
 from ophyd import ADComponent as ADCpt
 from ophyd import CamBase
 from ophyd import Component as Cpt
