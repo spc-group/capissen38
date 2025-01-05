@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 
@@ -26,7 +27,7 @@ from haven.devices.monochromator import Monochromator
 from haven.devices.robot import Robot
 from haven.devices.shutter import PssShutter
 from haven.devices.slits import ApertureSlits, BladeSlits
-from haven.devices.xia_pfcu import PFCUFilter, PFCUFilterBank, PFCUShutter
+from haven.devices.xia_pfcu import PFCUFilter, PFCUFilterBank
 from haven.devices.xspress import Xspress3Detector
 from haven.devices.xspress import add_mcas as add_xspress_mcas
 
@@ -199,30 +200,18 @@ def aps(sim_registry):
 
 
 @pytest.fixture()
-def xia_shutter_bank(sim_registry):
-    class ShutterBank(PFCUFilterBank):
-        shutters = DCpt(
-            {
-                "shutter_0": (
-                    PFCUShutter,
-                    "",
-                    {"top_filter": 4, "bottom_filter": 3, "labels": {"shutters"}},
-                )
-            }
-        )
-
-        def __new__(cls, *args, **kwargs):
-            return object.__new__(cls)
-
-    FakeBank = make_fake_device(ShutterBank)
-    bank = FakeBank(prefix="255id:pfcu4:", name="xia_filter_bank", shutters=[[3, 4]])
+async def xia_shutter_bank(sim_registry):
+    bank = PFCUFilterBank(
+        prefix="255id:pfcu4:", name="xia_filter_bank", shutters=[[2, 3]]
+    )
+    await bank.connect(mock=True)
     sim_registry.register(bank)
     yield bank
 
 
 @pytest.fixture()
 def xia_shutter(xia_shutter_bank):
-    shutter = xia_shutter_bank.shutters.shutter_0
+    shutter = xia_shutter_bank.shutters[0]
     yield shutter
 
 
@@ -242,16 +231,13 @@ def shutters(sim_registry):
 
 
 @pytest.fixture()
-def filters(sim_registry):
-    FakeFilter = make_fake_device(PFCUFilter)
-    kw = {
-        "labels": {"filters"},
-    }
+async def filters(sim_registry):
     filters = [
-        FakeFilter(name="Filter A", prefix="filter1", **kw),
-        FakeFilter(name="Filter B", prefix="filter2", **kw),
+        PFCUFilter(name="Filter A", prefix="filter1"),
+        PFCUFilter(name="Filter B", prefix="filter2"),
     ]
     [sim_registry.register(f) for f in filters]
+    await asyncio.gather(*(filter.connect(mock=True) for filter in filters))
     return filters
 
 

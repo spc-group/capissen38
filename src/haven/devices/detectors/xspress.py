@@ -48,6 +48,7 @@ class XspressController(DetectorController):
 
     @AsyncStatus.wrap
     async def prepare(self, trigger_info: TriggerInfo):
+        print("preparing")
         await asyncio.gather(
             self._drv.num_images.set(trigger_info.total_number_of_triggers),
             self._drv.image_mode.set(adcore.ImageMode.MULTIPLE),
@@ -56,9 +57,12 @@ class XspressController(DetectorController):
             # https://github.com/epics-modules/xspress3/issues/57
             self._drv.deadtime_correction.set(False),
         )
+        print("prepared")
 
     async def wait_for_idle(self):
+        print("Waiting for idle")
         if self._arm_status:
+            print("doing it")
             await self._arm_status
 
     async def arm(self):

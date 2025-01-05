@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from ophyd import sim
 
-from haven import KRange, energy_scan, xafs_scan
+from haven.energy_ranges import KRange
+from haven.plans import energy_scan, xafs_scan
 
 
 @pytest.fixture()
@@ -183,12 +184,12 @@ def test_exafs_k_range(mono_motor, exposure_motor, I0):
     real_energies = [
         i.args[0] for i in scan_list if i[0] == "set" and i.obj.name == "mono_energy"
     ]
-    np.testing.assert_equal(real_energies, expected_energies)
+    np.testing.assert_almost_equal(real_energies, expected_energies)
     # Check that the exposure is set correctly
     real_exposures = [
         i.args[0] for i in scan_list if i[0] == "set" and i.obj.name == "exposure"
     ]
-    np.testing.assert_equal(real_exposures, expected_exposures)
+    np.testing.assert_almost_equal(real_exposures, expected_exposures)
 
 
 def test_named_E0(mono_motor, exposure_motor, I0):

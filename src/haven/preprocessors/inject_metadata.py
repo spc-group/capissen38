@@ -1,44 +1,20 @@
-"""Tools for modifying plans and data streams as they are generated."""
-
 import getpass
 import logging
 import os
 import socket
 import warnings
 from collections import ChainMap
-from typing import Sequence, Union  # , Iterable
 
 import epics
 import pkg_resources
-from bluesky.preprocessors import baseline_wrapper as bluesky_baseline_wrapper
-from bluesky.preprocessors import finalize_wrapper, msg_mutator
+from bluesky.preprocessors import msg_mutator
 
-# from bluesky.suspenders import SuspendBoolLow
-from bluesky.utils import Msg, make_decorator
-
-from . import __version__ as haven_version
-from ._iconfig import load_config
-from .exceptions import ComponentNotFound
-from .instrument import beamline
+from haven import __version__ as haven_version
+from haven._iconfig import load_config
+from haven.exceptions import ComponentNotFound
+from haven.instrument import beamline
 
 log = logging.getLogger()
-
-
-def baseline_wrapper(
-    plan,
-    devices: Union[Sequence, str] = [
-        "motors",
-        "power_supplies",
-        "xray_sources",
-        "APS",
-        "baseline",
-    ],
-    name: str = "baseline",
-):
-    bluesky_baseline_wrapper.__doc__
-    # Resolve devices
-    devices = beamline.devices.findall(devices, allow_none=True)
-    yield from bluesky_baseline_wrapper(plan=plan, devices=devices, name=name)
 
 
 def get_version(pkg_name):
@@ -130,57 +106,6 @@ def inject_haven_md_wrapper(plan):
         return msg
 
     return (yield from msg_mutator(plan, _inject_md))
-
-
-def shutter_suspend_wrapper(plan, shutter_signals=None):
-    """
-    Install suspenders to the RunEngine, and remove them at the end.
-
-    Parameters
-    ----------
-    plan : iterable or iterator
-        a generator, list, or similar containing `Msg` objects
-    suspenders : suspender or list of suspenders
-        Suspenders to use for the duration of the wrapper
-
-    Yields
-    ------
-    msg : Msg
-        messages from plan, with 'install_suspender' and 'remove_suspender'
-        messages inserted and appended
-    """
-    if shutter_signals is None:
-        shutters = beamline.devices.findall("shutters", allow_none=True)
-        shutter_signals = [s.pss_state for s in shutters]
-    # Create a suspender for each shutter
-    suspenders = []
-
-    ###################################################
-    # Temporarily disabled for technical commissioning
-    ###################################################
-    # for sig in shutter_signals:
-    #     suspender = SuspendBoolLow(sig, sleep=3.0)
-    #     suspenders.append(suspender)
-    # if not isinstance(suspenders, Iterable):
-    #     suspenders = [suspenders]
-
-    def _install():
-        for susp in suspenders:
-            yield Msg("install_suspender", None, susp)
-
-    def _remove():
-        for susp in suspenders:
-            yield Msg("remove_suspender", None, susp)
-
-    def _inner_plan():
-        yield from _install()
-        return (yield from plan)
-
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
-
-
-baseline_decorator = make_decorator(baseline_wrapper)
-shutter_suspend_decorator = make_decorator(shutter_suspend_wrapper)
 
 
 # -----------------------------------------------------------------------------

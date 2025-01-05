@@ -1,9 +1,9 @@
-##############
-How-To Guides
-##############
+############
+Topic Guides
+############
 
-These guides cover a particular topic in depth, coving material useful
-to users and beamline staff.
+These guides cover **a particular topic in depth**, coving material
+useful to users and beamline staff.
 
 These guides do not cover the individual beamlines thoroughly.
 
@@ -21,5 +21,6 @@ These guides do not cover the individual beamlines thoroughly.
    fly_scanning.rst
    hardware_triggering.rst
    instrument_registry.rst
+   shutters_and_filters.rst
    motor_positions.rst
    xdi_writer.rst

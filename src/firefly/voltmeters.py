@@ -33,7 +33,7 @@ class VoltmetersDisplay(display.FireflyDisplay):
 
     def customize_ui(self):
         # Connect support for running the auto_gain and dark current plans
-        self.ui.auto_gain_button.setToolTip(haven.auto_gain.__doc__)
+        self.ui.auto_gain_button.setToolTip(haven.plans.auto_gain.__doc__)
         self.ui.auto_gain_button.clicked.connect(self.run_auto_gain)
         self.ui.dark_current_button.clicked.connect(self.record_dark_current)
         # Adjust layouts

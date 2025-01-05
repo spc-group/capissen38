@@ -5,8 +5,7 @@ import numpy as np
 import pytest
 from bluesky_adaptive.recommendations import NoRecommendation
 
-from haven import GainRecommender, auto_gain
-from haven.plans import auto_gain as auto_gain_module
+from haven.plans import _auto_gain, auto_gain
 
 
 def test_plan_recommendations(ion_chamber):
@@ -36,17 +35,17 @@ async def test_plan_prefer_arg(ion_chamber, monkeypatch, prefer, target_volts):
     queue = Queue()
     queue.put({ion_chamber.preamp.gain_level.name: 12})
     queue.put(None)
-    monkeypatch.setattr(auto_gain_module, "GainRecommender", MagicMock())
+    monkeypatch.setattr(_auto_gain, "GainRecommender", MagicMock())
     plan = auto_gain(ion_chambers=[ion_chamber], queue=queue, prefer=prefer)
     msgs = list(plan)
-    auto_gain_module.GainRecommender.assert_called_with(
+    _auto_gain.GainRecommender.assert_called_with(
         volts_min=0.5, volts_max=4.5, target_volts=target_volts
     )
 
 
 @pytest.fixture()
 def recommender():
-    recc = GainRecommender()
+    recc = _auto_gain.GainRecommender()
     return recc
 
 
@@ -183,7 +182,7 @@ def test_recommender_no_solution(recommender):
 @pytest.mark.parametrize("target_volts,gain", [(0.5, 10), (2.5, 9), (4.5, 8)])
 def test_recommender_correct_solution(target_volts, gain):
     """If the gain profile goes from too low to too high in one step, what should we report?"""
-    recommender = GainRecommender(target_volts=target_volts)
+    recommender = _auto_gain.GainRecommender(target_volts=target_volts)
     gains = [[7], [8], [9], [10], [11]]
     volts = [[5.2], [4.1], [2.7], [1.25], [0.4]]
     recommender.tell_many(gains, volts)

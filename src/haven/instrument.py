@@ -85,18 +85,19 @@ class HavenInstrument(Instrument):
 beamline = HavenInstrument(
     {
         # Ophyd-async devices
-        "ion_chamber": IonChamber,
-        "high_heat_load_mirror": HighHeatLoadMirror,
-        "kb_mirrors": KBMirrors,
-        "xy_stage": XYStage,
-        "table": Table,
         "aerotech_stage": AerotechStage,
-        "motor": Motor,
-        "energy": EnergyPositioner,
-        "sim_detector": SimDetector,
         "camera": AravisDetector,
+        "energy": EnergyPositioner,
+        "high_heat_load_mirror": HighHeatLoadMirror,
+        "ion_chamber": IonChamber,
+        "kb_mirrors": KBMirrors,
+        "motor": Motor,
+        "pfcu4": PFCUFilterBank,
         "pss_shutter": PssShutter,
+        "sim_detector": SimDetector,
+        "table": Table,
         "xspress3": Xspress3Detector,
+        "xy_stage": XYStage,
         # Threaded ophyd devices
         "blade_slits": BladeSlits,
         "aperture_slits": ApertureSlits,
@@ -104,10 +105,34 @@ beamline = HavenInstrument(
         "power_supply": NHQ203MChannel,
         "synchrotron": ApsMachine,
         "robot": Robot,
-        "pfcu4": PFCUFilterBank,  # <-- fails if mocked
         "dxp": make_dxp_device,
         "beamline_manager": BeamlineManager,
         "area_detector": make_area_detector,
         "scaler": MultiChannelScaler,
     },
 )
+
+# -----------------------------------------------------------------------------
+# :author:    Mark Wolfman
+# :email:     wolfman@anl.gov
+# :copyright: Copyright © 2024, UChicago Argonne, LLC
+#
+# Distributed under the terms of the 3-Clause BSD License
+#
+# The full license is in the file LICENSE, distributed with this software.
+#
+# DISCLAIMER
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# -----------------------------------------------------------------------------

@@ -9,7 +9,7 @@ import warnings
 import pytest
 from ophyd import sim
 
-from haven import align_slits
+from haven.plans._align_slits import align_slits
 
 
 def test_align_slits(RE):

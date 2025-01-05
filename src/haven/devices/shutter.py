@@ -10,7 +10,7 @@ from ophyd_async.epics.core import epics_signal_r
 from ..positioner import Positioner
 from .signal import derived_signal_rw, epics_signal_xval
 
-# from apstools.devices.shutters import ApsPssShutterWithStatus as Shutter
+__all__ = ["PssShutter", "ShutterState"]
 
 
 log = logging.getLogger(__name__)
@@ -49,7 +49,8 @@ class PssShutter(Positioner):
         self.units = soft_signal_rw(str, initial_value="")
         self.precision = soft_signal_rw(int, initial_value=0)
         # Positioner signals for moving the shutter
-        self.readback = epics_signal_r(bool, f"{prefix}BeamBlockingM.VAL")
+        with self.add_children_as_readables():
+            self.readback = epics_signal_r(bool, f"{prefix}BeamBlockingM.VAL")
         self.setpoint = derived_signal_rw(
             int,
             derived_from={

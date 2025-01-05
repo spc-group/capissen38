@@ -4,7 +4,9 @@ from .ion_chamber import IonChamber  # noqa: F401
 from .monochromator import Monochromator  # noqa: F401
 from .motor import HavenMotor, Motor  # noqa: F401
 from .robot import Robot  # noqa: F401
+from .shutter import PssShutter, ShutterState  # noqa: F401
 from .table import Table  # noqa: F401
+from .xia_pfcu import PFCUFilter, PFCUFilterBank  # noqa: F401
 
 # -----------------------------------------------------------------------------
 # :author:    Mark Wolfman

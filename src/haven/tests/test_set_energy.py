@@ -1,7 +1,8 @@
 import pytest
 from ophyd.sim import motor, motor1, motor2
 
-from haven import exceptions, set_energy
+from haven import exceptions
+from haven.plans import set_energy
 
 
 def test_plan_messages():

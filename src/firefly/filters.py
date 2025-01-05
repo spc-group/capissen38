@@ -15,9 +15,7 @@ class FiltersDisplay(display.FireflyDisplay):
 
     def customize_device(self):
         filters = beamline.devices.findall(label="filters", allow_none=True)
-        self.filters = sorted(
-            filters, key=lambda dev: (dev.material.get(), dev.thickness.get())
-        )
+        self.filters = sorted(filters, key=lambda dev: dev.name)
 
     def customize_ui(self):
         # Delete existing filter widgets

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from ophyd.sim import det1, det2, motor1
 
-from haven.plans.beam_properties import fit_step, knife_scan
+from haven.plans._beam_properties import fit_step, knife_scan
 
 
 # @pytest.mark.xfail()

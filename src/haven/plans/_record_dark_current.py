@@ -7,7 +7,7 @@ from ophyd import Device
 
 from ..devices.shutter import ShutterState
 from ..instrument import beamline
-from .shutters import close_shutters, open_shutters
+from ._shutters import close_shutters, open_shutters
 
 
 def count_is_complete(*, old_value, value, **kwargs):

@@ -301,4 +301,4 @@ prefix = "255idc:pfcu0:"
 [[ pfcu4 ]]
 name = "filter_bank1"
 prefix = "255idc:pfcu1:"
-shutters = [[3, 4]]
+shutters = [[2, 3]]

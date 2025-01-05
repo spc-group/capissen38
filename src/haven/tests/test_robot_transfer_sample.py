@@ -1,6 +1,6 @@
 from ophyd.sim import motor1, motor2, motor3
 
-from haven import robot_transfer_sample
+from haven.plans import robot_transfer_sample
 
 
 def test_robot_sample(robot):

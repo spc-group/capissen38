@@ -1,44 +1,32 @@
-import pytest
-from bluesky import RunEngine
-from bluesky.callbacks.best_effort import BestEffortCallback
-from ophyd import sim
+import logging
+from typing import Sequence, Union  # , Iterable
 
-from haven.plans import align_motor
+from bluesky.preprocessors import baseline_wrapper as bluesky_baseline_wrapper
+from bluesky.utils import make_decorator
 
-# from run_engine import RunEngineStub
+from haven.instrument import beamline
+
+log = logging.getLogger()
 
 
-@pytest.mark.skip(reason="Deprecated, use bluesky.plans.tune_centroid")
-def test_align_motor(ffapp):
-    # Set up simulated motors and detectors
-    motor = sim.SynAxis(name="motor", labels={"motors"})
-    detector = sim.SynGauss(
-        name="detector",
-        motor=motor,
-        motor_field="motor",
-        center=-3,
-        Imax=1,
-        sigma=20,
-        labels={"detectors"},
-    )
-    # Prepare the callback to check results
-    bec = BestEffortCallback()
-    bec.disable_plots()
-    bec.disable_table()
-    # Prepare the plan
-    plan = align_motor(
-        detector=detector,
-        motor=motor,
-        distance=40,
-        bec=bec,
-        md={"plan_name": "test_plan"},
-    )
-    # Execute the plan
-    RE = RunEngine(call_returns_result=True)
-    result = RE(plan)
-    # Check peak calculation results
-    assert bec.peaks["cen"]["detector"] == pytest.approx(-3, rel=1e-3)
-    assert motor.readback.get() == pytest.approx(-3, rel=1e-3)
+def baseline_wrapper(
+    plan,
+    devices: Union[Sequence, str] = [
+        "motors",
+        "power_supplies",
+        "xray_sources",
+        "APS",
+        "baseline",
+    ],
+    name: str = "baseline",
+):
+    bluesky_baseline_wrapper.__doc__
+    # Resolve devices
+    devices = beamline.devices.findall(devices, allow_none=True)
+    yield from bluesky_baseline_wrapper(plan=plan, devices=devices, name=name)
+
+
+baseline_decorator = make_decorator(baseline_wrapper)
 
 
 # -----------------------------------------------------------------------------

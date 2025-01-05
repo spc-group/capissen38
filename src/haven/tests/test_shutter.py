@@ -19,6 +19,16 @@ async def shutter(sim_registry):
     return shutter
 
 
+async def test_read_shutter(shutter):
+    """The current state of the shutter should be readable.
+
+    This makes it compatible with the ``open_shutters_wrapper``.
+
+    """
+    reading = await shutter.read()
+    assert shutter.name in reading
+
+
 async def test_shutter_setpoint(shutter):
     """When we open and close the shutter, do the right EPICS signals get
     set?

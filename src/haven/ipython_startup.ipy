@@ -5,11 +5,11 @@ import time
 import databroker  # noqa: F401
 import matplotlib.pyplot as plt  # noqa: F401
 from bluesky import plan_stubs as bps  # noqa: F401
+from bluesky.plan_stubs import mv, mvr, rd  # noqa: F401
 from bluesky import plans as bp  # noqa: F401
 from bluesky import preprocessors as bpp  # noqa: F401
 from bluesky import suspenders  # noqa: F401
 from bluesky.callbacks.best_effort import BestEffortCallback  # noqa: F401
-from bluesky.plan_stubs import mv, mvr, rd  # noqa: F401
 from bluesky.run_engine import RunEngine, call_in_bluesky_event_loop  # noqa: F401
 from bluesky.simulators import summarize_plan  # noqa: F401
 from ophyd_async.core import NotConnected
@@ -22,6 +22,7 @@ from rich.panel import Panel
 from rich.theme import Theme
 
 import haven  # noqa: F401
+from haven import plans  # noqa: F401
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -33,9 +34,6 @@ RE = haven.run_engine(
     call_returns_result=True,
     use_bec=True,
 )
-
-# Add metadata to the run engine
-RE.preprocessors.append(haven.preprocessors.inject_haven_md_wrapper)
 
 # Import some ophyd-async stuff
 # NB: This has to be after the run engine setup
@@ -83,9 +81,9 @@ motd = (
     " ┃    —or—\n"
     " ┗━ [code]m2 = devices['sim_motor_2'][/]\n"
     "\n"
-    "[bold]Bluesky plans and plan-stubs[/bold] are available as "
-    "[italic]bp[/] and [italic]bps[/] respectively.\n"
-    " ┗━ [code]plan = bps.mv(m2, 2)[/]\n"
+    "[bold]Haven plans and plan-stubs[/bold] are available as "
+    "[italic]plans[/].\n"
+    " ┗━ [code]plan = plans.xafs_scan(ion_chambers, -50, 100, 1, E0=8333)[/]\n"
     "\n"
     "The [bold]RunEngine[/bold] is available as [italic]RE[/italic].\n"
     " ┗━ [code]RE(bps.mv(m2, 2))[/code]\n"

@@ -9,12 +9,8 @@ from typing import Mapping, Optional, Sequence, Union
 
 from .. import exceptions
 from ..energy_ranges import ERange, KRange, energy_to_wavenumber, merge_ranges
-from ..preprocessors import baseline_decorator
 from ..typing import DetectorList
-from .energy_scan import energy_scan
-
-log = logging.getLogger(__name__)
-
+from ._energy_scan import energy_scan
 
 log = logging.getLogger(__name__)
 
@@ -28,8 +24,6 @@ def chunks(lst, n):
         yield lst[i : i + n]  # noqa: E203
 
 
-# @shutter_suspend_decorator()
-@baseline_decorator()
 def xafs_scan(
     E_min: float,
     *E_params: Sequence[float],

@@ -1,75 +1,120 @@
+import asyncio
+
 import pytest
+from ophyd_async.testing import set_mock_value
 
-from haven.devices.xia_pfcu import PFCUFilter, PFCUFilterBank, PFCUShutter, ShutterState
+from haven.devices.xia_pfcu import (
+    FilterState,
+    PFCUFilter,
+    PFCUFilterBank,
+    PFCUShutter,
+    ShutterState,
+)
 
 
 @pytest.fixture()
-def shutter(xia_shutter):
-    yield xia_shutter
+async def filter_bank(sim_registry):
+    bank = PFCUFilterBank(
+        prefix="255id:pfcu4:", name="xia_filter_bank", shutters=[(1, 2)]
+    )
+    await bank.connect(mock=True)
+    sim_registry.register(bank)
+    yield bank
 
 
 @pytest.fixture()
-def shutter_bank(xia_shutter_bank):
-    yield xia_shutter_bank
+async def shutter(filter_bank):
+    shutter = filter_bank.shutters[0]
+    await asyncio.gather(
+        shutter.setpoint.connect(mock=False),
+        shutter.readback.connect(mock=False),
+        shutter.top_filter.readback.connect(mock=False),
+        shutter.bottom_filter.readback.connect(mock=False),
+    )
+    yield shutter
 
 
-def test_shutter_factory():
-    """Check that a shutter device is created if requested."""
-    filterbank = PFCUFilterBank(
-        prefix="255id:pfcu0:", name="filter_bank_0", shutters=[(2, 3)]
-    )  #
-    assert filterbank.prefix == "255id:pfcu0:"
-    assert filterbank.name == "filter_bank_0"
-    assert hasattr(filterbank, "shutters")
-    assert isinstance(filterbank.shutters.shutter_0, PFCUShutter)
-    assert hasattr(filterbank, "shutters")
-    assert isinstance(filterbank.filters.filter1, PFCUFilter)
-    assert filterbank.filters.filter1.prefix == "255id:pfcu0:filter1"
-    assert isinstance(filterbank.filters.filter4, PFCUFilter)
-    assert not hasattr(filterbank.filters, "filter2")
-    assert not hasattr(filterbank.filters, "filter3")
+@pytest.fixture()
+async def filter(filter_bank):
+    filter = filter_bank.filters[0]
+    await filter.readback.connect(mock=False)
+    yield filter
 
 
-def test_pfcu_shutter_signals(shutter):
+def test_shutter_devices(filter_bank):
+    """Check that a shutter device is created if
+    requested."""
+    assert hasattr(filter_bank, "shutters")
+    assert isinstance(filter_bank.shutters[0], PFCUShutter)
+    assert "fast_shutters" in filter_bank.shutters[0]._ophyd_labels_
+    assert (
+        filter_bank.shutters[0].top_filter.material.source
+        == "mock+ca://255id:pfcu4:filter2_mat"
+    )
+    assert hasattr(filter_bank, "filters")
+    assert isinstance(filter_bank.filters[0], PFCUFilter)
+    assert filter_bank.filters[0].material.source == "mock+ca://255id:pfcu4:filter1_mat"
+    assert isinstance(filter_bank.filters[3], PFCUFilter)
+    # Make sure the shutter blades are not listed as filters
+    assert 1 not in filter_bank.filters.keys()
+    assert 2 not in filter_bank.filters.keys()
+
+
+async def test_shutter_signals(shutter):
     # Check initial state
-    assert shutter.top_filter.setpoint.get() == 0
-    assert shutter.bottom_filter.setpoint.get() == 0
+    assert await shutter.top_filter.setpoint.get_value() == False
+    assert await shutter.bottom_filter.setpoint.get_value() == False
 
 
-def test_pfcu_shutter_readback(shutter):
+async def test_shutter_readback(filter_bank, shutter):
     # Set the shutter position
-    readback = shutter.parent.parent.readback
-    readback._readback = 0b0010
-    readback._run_subs(sub_type=readback._default_sub)
+    set_mock_value(filter_bank.readback, "0010")
     # Check that the readback signal gets updated
-    assert shutter.readback.get() == ShutterState.OPEN
+    assert await shutter.readback.get_value() == ShutterState.OPEN
+    # Set the shutter position
+    set_mock_value(filter_bank.readback, "0100")
+    # Check that the readback signal gets updated
+    assert await shutter.readback.get_value() == ShutterState.CLOSED
 
 
-def test_pfcu_shutter_bank_mask(shutter_bank):
+async def test_shutter_reading(shutter):
+    """Ensure the shutter can be read.
+
+    Needed for compatibility with the ``open_shutters_wrapper``.
+
+    """
+    assert shutter.readback.name == shutter.name
+    reading = await shutter.read()
+    assert shutter.name in reading
+
+
+def test_pfcu_shutter_mask(shutter):
     """A bit-mask used for determining how to set the filter bank."""
-    shutter = shutter_bank.shutters.shutter_0
-    assert shutter.setpoint.top_mask() == 0b0001
-    assert shutter.setpoint.bottom_mask() == 0b0010
+    assert shutter.top_mask() == 0b0100
+    assert shutter.bottom_mask() == 0b0010
 
 
-def test_pfcu_shutter_open(shutter_bank):
+async def test_shutter_open(filter_bank, shutter):
     """If the PFCU filter bank is available, open both blades simultaneously."""
-    shutter = shutter_bank.shutters.shutter_0
     # Set the other filters on the filter bank
-    shutter_bank.readback._readback = 0b0100
+    set_mock_value(filter_bank.readback, "1001")
     # Open the shutter, and check that the filterbank was set
-    shutter.setpoint.set(ShutterState.OPEN).wait(timeout=1)
-    assert shutter_bank.setpoint.get() == 0b0110
+    await shutter.setpoint.set(ShutterState.OPEN)
+    assert await filter_bank.setpoint.get_value() == "1011"
 
 
-def test_pfcu_shutter_close(shutter_bank):
+async def test_shutter_close(filter_bank, shutter):
     """If the PFCU filter bank is available, open both blades simultaneously."""
-    shutter = shutter_bank.shutters.shutter_0
     # Set the other filters on the filter bank
-    shutter_bank.readback._readback = 0b0100
+    set_mock_value(filter_bank.readback, "1001")
     # Open the shutter, and check that the filterbank was set
-    shutter.setpoint.set(ShutterState.CLOSED).wait(timeout=1)
-    assert shutter_bank.setpoint.get() == 0b0101
+    await shutter.setpoint.set(ShutterState.CLOSED)
+    assert await filter_bank.setpoint.get_value() == "1101"
+
+
+async def test_filter_readback(filter):
+    set_mock_value(filter._readback, "In")
+    assert await filter.readback.get_value() == FilterState.IN
 
 
 # -----------------------------------------------------------------------------
