@@ -116,9 +116,10 @@ DEFAULT_NODE = object()
 
 def tiled_client(
     catalog: str = DEFAULT_NODE,
-    uri: str = None,
-    cache_filepath=None,
-    structure_clients="numpy",
+    uri: str | None = None,
+    cache_filepath: str | None = None,
+    structure_clients: str = "numpy",
+    api_key: str | None = None,
 ):
     """Load a tiled client for retrieving data from databses.
 
@@ -149,7 +150,8 @@ def tiled_client(
     # Create the client
     if uri is None:
         uri = tiled_config["uri"]
-    api_key = tiled_config.get("api_key")
+    if api_key is None:
+        api_key = tiled_config.get("api_key")
     client_ = from_uri(uri, structure_clients, api_key=api_key)
     if catalog is DEFAULT_NODE:
         client_ = client_[tiled_config["default_catalog"]]

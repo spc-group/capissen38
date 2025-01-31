@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 class HavenInstrument(Instrument):
     def load(
         self,
-        config: Mapping = None,
+        config: Mapping | None = None,
         return_devices: bool = False,
         reset_devices: bool = True,
     ):

@@ -11,6 +11,7 @@ from ophyd_async.core import NotConnected
 from ophydregistry import Registry
 from qasync import asyncSlot
 from qtpy import QtCore, QtWidgets
+from qtpy.QtCore import QObject
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QIcon, QKeySequence
 from qtpy.QtWidgets import QAction, QErrorMessage
@@ -40,7 +41,7 @@ pg.setConfigOption("background", (252, 252, 252))
 pg.setConfigOption("foreground", (0, 0, 0))
 
 
-class FireflyController(QtCore.QObject):
+class FireflyController(QObject):
     default_display = None
 
     # For keeping track of ophyd devices
@@ -460,7 +461,7 @@ class FireflyController(QtCore.QObject):
     def device_actions(
         self,
         device_label: str,
-        display_file: str = None,
+        display_file: str | None = None,
         device_key: str = "DEVICE",
         WindowClass: type = FireflyMainWindow,
         icon: QIcon = None,

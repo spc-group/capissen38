@@ -10,6 +10,7 @@ __all__ = [
 ]
 
 import argparse
+from datetime import datetime, date, time
 import logging
 import os
 from pathlib import Path
@@ -22,7 +23,7 @@ from mergedeep import merge
 log = logging.getLogger(__name__)
 
 
-_local_overrides = {}
+Table = dict[str, dict | int | float | str | bool | list | datetime | date | time]
 
 
 def load_files(file_paths: Sequence[Path]):
@@ -30,9 +31,9 @@ def load_files(file_paths: Sequence[Path]):
     for fp in file_paths:
         fp = Path(fp)
         if fp.exists():
-            with open(fp, mode="rb") as fp:
+            with open(fp, mode="rb") as fd:
                 log.debug(f"Loading config file: {fp}")
-                config = tomli.load(fp)
+                config = tomli.load(fd)
                 yield config
         else:
             log.debug(f"Could not find config file, skipping: {fp}")
@@ -61,12 +62,12 @@ def load_config(file_paths: Optional[Sequence[Path]] = None):
         file_paths = list(file_paths).copy()
     # Add config file from environmental variable
     # Load configuration from TOML files
-    config = {}
-    merge(config, *load_files(file_paths), _local_overrides)
+    config: Table = {}
+    merge(config, *load_files(file_paths))
     return config
 
 
-def print_config_value(args: Sequence[str] = None):
+def print_config_value(args: Sequence[str] | None = None) -> None:
     """Print a config value from TOML files.
 
     Parameters
@@ -82,10 +83,10 @@ def print_config_value(args: Sequence[str] = None):
         description="Retrieve a value from Haven's config files.",
     )
     parser.add_argument("key", help="The dot-separated key to look up.")
-    args = parser.parse_args(args=args)
+    args_ = parser.parse_args(args=args)
     # Get the keys from the config file
     value = load_config()
-    for part in args.key.split("."):
+    for part in args_.key.split("."):
         value = value[part]
     try:
         value = value.strip()
