@@ -68,7 +68,7 @@ class Sample(Device):
         super().__init__(*args, labels=labels, **kwargs)
 
 
-def transfer_samples(num_samples: int):
+def transfer_samples(num_samples: int) -> dict[str, tuple]:
     """Create a dictionary with robot sample device definitions.
     For use with an ophyd DynamicDeviceComponent.
     Parameters
@@ -76,7 +76,7 @@ def transfer_samples(num_samples: int):
     num_dios
       How many samples to create.
     """
-    samples = {}
+    samples: dict[str, tuple] = {}
     # Now the sample holder bases are only located at sites [8,9,10,14,15,16,20,21,22] on the board.
     for n in [8, 9, 10, 14, 15, 16, 20, 21, 22]:  # range(num_samples):
         samples[f"sample{n}"] = (Sample, f":sample{n}", {})

@@ -118,19 +118,19 @@ def calculate_settle_time(gain_value: int, gain_unit: int, gain_mode: str):
     """
     # Convert indexes to string values
     try:
-        gain_value = gain_values[gain_value]
+        new_value = gain_values[gain_value]
     except (TypeError, IndexError):
         pass
     try:
-        gain_unit = gain_units[gain_unit]
+        new_unit = gain_units[gain_unit]
     except (TypeError, IndexError):
         pass
     try:
-        gain_mode = gain_modes[gain_mode]
+        new_mode = gain_modes[gain_mode]
     except (TypeError, IndexError):
         pass
     # Get calibrated settle time, or None to use the Ophyd default
-    return settling_times.get((gain_value, gain_unit, gain_mode))
+    return settling_times.get((new_value, new_unit, new_mode))
 
 
 class GainSignal(SignalRW):
@@ -158,7 +158,7 @@ class GainSignal(SignalRW):
     @AsyncStatus.wrap
     async def set(
         self, value: T, wait=True, timeout: CalculatableTimeout = CALCULATE_TIMEOUT
-    ) -> AsyncStatus:
+    ):
         aw = super().set(value=value, wait=wait, timeout=timeout)
         if wait:
             await aw
@@ -186,69 +186,6 @@ def gain_signal(
     """
     backend = _epics_signal_backend(datatype, read_pv, write_pv or read_pv)
     return GainSignal(backend, name=name)
-
-
-# class GainSignal(EpicsSignal):
-#     """
-#     A signal where the settling time depends on the pre-amp gain.
-
-#     Used to introduce a specific settle time when setting to account
-#     for the amp's RC relaxation time when changing gain.
-#     """
-
-#     def set(self, value, *, timeout=DEFAULT_WRITE_TIMEOUT, settle_time="auto"):
-#         """
-#         Set the value of the Signal and return a Status object.
-
-#         If put completion is used for this EpicsSignal, the status object
-#         will complete once EPICS reports the put has completed.
-
-#         Otherwise the readback will be polled until equal to the set point
-#         (as in ``Signal.set``)
-
-#         Parameters
-#         ----------
-
-#         value : any
-#             The gain value.
-
-#         timeout : float, optional
-#             Maximum time to wait.
-
-#         settle_time: float, optional
-#             Delay after ``set()`` has completed to indicate completion
-#             to the caller. If ``"auto"`` (default), a reasonable settle
-#             time will be chosen based on the gain mode of the pre-amp.
-
-#         Returns
-#         -------
-#         st : Status
-
-#         .. seealso::
-#             * Signal.set
-#             * EpicsSignal.set
-
-#         """
-#         # Determine optimal settling time.
-#         if settle_time == "auto":
-#             signals = [self.parent.sensitivity_value, self.parent.sensitivity_unit, self.parent.gain_mode]
-#             args = [value if self is sig else sig.get() for sig in signals]
-#             val, unit, mode = args
-#             # Resolve string values to indices if provided
-#             if val in gain_values:
-#                 val = gain_values.index(val)
-#             if unit in gain_units:
-#                 unit = gain_units.index(unit)
-#             if mode in gain_modes:
-#                 mode = gain_modes.index(mode)
-#             # Low-drift mode uses the same settling times as low-noise mode
-#             if mode == "LOW DRIFT":
-#                 mode = "LOW NOISE"
-#             # Calculate settling time
-#             _settle_time = calculate_settle_time(gain_value=val, gain_unit=unit, gain_mode=mode)
-#         else:
-#             _settle_time = settle_time
-#         return super().set(value, timeout=timeout, settle_time=_settle_time)
 
 
 class SRS570PreAmplifier(Device):

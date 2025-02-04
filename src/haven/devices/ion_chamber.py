@@ -12,6 +12,7 @@ from ophyd_async.core import (
     StandardReadable,
     StandardReadableFormat,
     TriggerInfo,
+    LazyMock,
     soft_signal_rw,
     wait_for_value,
 )
@@ -48,7 +49,7 @@ class IonChamber(StandardReadable, Triggerable):
     """
 
     _ophyd_labels_ = {"ion_chambers", "detectors"}
-    _trigger_statuses = {}
+    _trigger_statuses: dict[str, AsyncStatus] = {}
     _clock_register_width = 32  # bits in the register
 
     def __init__(
@@ -60,7 +61,7 @@ class IonChamber(StandardReadable, Triggerable):
         voltmeter_channel: int,
         counts_per_volt_second: float,
         name="",
-        auto_name: bool = None,
+        auto_name: bool | None = None,
     ):
         self.scaler_prefix = scaler_prefix
         self._scaler_channel = scaler_channel
@@ -236,7 +237,7 @@ class IonChamber(StandardReadable, Triggerable):
 
     async def connect(
         self,
-        mock: bool = False,
+        mock: bool | LazyMock = False,
         timeout: float = DEFAULT_TIMEOUT,
         force_reconnect: bool = False,
     ):
@@ -357,15 +358,17 @@ class IonChamber(StandardReadable, Triggerable):
         """Prepare the ion chamber for fly scanning."""
         self.start_timestamp = None
         # Set some configuration PVs on the MCS
-        await asyncio.gather(
-            self.mcs.count_on_start.set(1),
+        aws = [
+            self.mcs.count_on_start.set(True),
             self.mcs.channel_advance_source.set(self.mcs.ChannelAdvanceSource.INTERNAL),
             self.mcs.num_channels.set(await self.mcs.num_channels_max.get_value()),
-            self.mcs.dwell_time.set(value.livetime),
             self.mcs.erase_all.trigger(),
-        )
+        ]
+        if value.livetime is not None:
+            aws += [self.mcs.dwell_time.set(value.livetime)]
+        await asyncio.gather(*aws)
         # Start acquiring data
-        self._fly_readings = []
+        self._fly_readings: list[dict] = []
         self._is_flying = False  # Gets set during kickoff
 
     @AsyncStatus.wrap

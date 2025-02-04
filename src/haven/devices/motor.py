@@ -8,6 +8,7 @@ from ophyd_async.core import (
     StandardReadableFormat,
     StrictEnum,
     SubsetEnum,
+    LazyMock,
 )
 from ophyd_async.epics.core import epics_signal_r, epics_signal_rw
 from ophyd_async.epics.motor import Motor as MotorBase
@@ -30,7 +31,7 @@ class Motor(MotorBase):
         FROZEN = "Frozen"
 
     def __init__(
-        self, prefix: str, name="", labels={"motors"}, auto_name: bool = None
+        self, prefix: str, name="", labels={"motors"}, auto_name: bool | None = None
     ) -> None:
         """Parameters
         ==========
@@ -65,7 +66,7 @@ class Motor(MotorBase):
 
     async def connect(
         self,
-        mock: bool = False,
+        mock: bool | LazyMock = False,
         timeout: float = DEFAULT_TIMEOUT,
         force_reconnect: bool = False,
     ):

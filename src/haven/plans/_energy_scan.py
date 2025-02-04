@@ -2,7 +2,7 @@
 
 import logging
 from collections import ChainMap
-from typing import Mapping, Optional, Sequence, Union
+from collections.abc import MutableMapping, Sequence, Mapping
 
 import numpy as np
 from bluesky import plans as bp
@@ -23,12 +23,12 @@ log = logging.getLogger(__name__)
 @baseline_decorator()
 def energy_scan(
     energies: Sequence[float],
-    exposure: Union[float, Sequence[float]] = 0.1,
-    E0: Union[float, str] = 0,
+    exposure: float | Sequence[float] = 0.1,
+    E0: float | str = 0,
     detectors: DetectorList = "ion_chambers",
     energy_signals: Sequence = ["energy"],
-    time_signals: Optional[Sequence] = None,
-    md: Mapping = {},
+    time_signals: Sequence | None = None,
+    md: Mapping[str, str | float | None] = {},
 ):
     """Collect a spectrum by scanning X-ray energy.
 
@@ -132,23 +132,23 @@ def energy_scan(
         E0 = edge_energy(E0)
     else:
         E0_str = None
-    energies = np.asarray(energies)
-    energies += E0
+    Es = np.asarray(energies)
+    Es += E0
     # Todo: sort the energies and exposure times by the energy
     # Prepare the positioners list with associated energies and exposures
-    energies = list(energies)
+    energies = list(Es)
     exposure = list(exposure)
-    scan_args = [(motor, energies) for motor in energy_signals]
-    scan_args += [(motor, exposure) for motor in time_signals]
-    scan_args = [item for items in scan_args for item in items]
+    arg_groups = [(motor, energies) for motor in energy_signals]
+    arg_groups += [(motor, exposure) for motor in time_signals]
+    scan_args = tuple([item for items in arg_groups for item in items])
     # Add some extra metadata
-    config = load_config()
     md_ = {"edge": E0_str, "E0": E0, "plan_name": "energy_scan"}
+    md_ = dict(**ChainMap(dict(**md), md_))
     # Do the actual scan
     yield from bp.list_scan(
         real_detectors,
-        *scan_args,
-        md=ChainMap(md, md_, config),
+        *scan_args,  # type: ignore  # tuple expansion gets weird
+        md=md_,
     )
 
 

@@ -12,10 +12,6 @@ from ophyd_async.core import (
 from ophyd_async.epics.core import epics_signal_r, epics_signal_rw, epics_signal_x
 
 
-class StrEnum(str, enum.Enum):
-    pass
-
-
 def epics_signal_io(datatype: Type[T], prefix: str, name: str = "") -> SignalRW[T]:
     """Create a `SignalRW` backed by 2 EPICS PVs.
 

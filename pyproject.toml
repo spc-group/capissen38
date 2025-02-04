@@ -64,4 +64,4 @@ parentdir_prefix = "haven-"
 
 [tool.mypy]
 # Make typing an optional thing
-disable_error_code = ["import-untyped"]
+disable_error_code = ["import-untyped", "import-not-found"]

@@ -5,7 +5,8 @@ capture detector signals.
 
 import logging
 import warnings
-from typing import Mapping, Optional, Sequence, Union
+from collections.abc import Mapping, Sequence
+from typing import cast
 
 from .. import exceptions
 from ..energy_ranges import ERange, KRange, energy_to_wavenumber, merge_ranges
@@ -27,14 +28,14 @@ def chunks(lst, n):
 def xafs_scan(
     E_min: float,
     *E_params: Sequence[float],
-    k_step: Optional[float] = None,
-    k_exposure: Optional[float] = None,
-    k_max: Optional[float] = None,
+    k_step: float | None = None,
+    k_exposure: float | None = None,
+    k_max: float | None = None,
     k_weight: float = 0.0,
-    E0: Union[float, str] = 0,
+    E0: float | str = 0,
     detectors: DetectorList = "ion_chambers",
     energy_signals: Sequence = ["energy"],
-    time_signals: Sequence = None,
+    time_signals: Sequence | None = None,
     md: Mapping = {},
 ):
     """Collect a spectrum by scanning X-ray energies relative to an
@@ -122,7 +123,7 @@ def xafs_scan(
     # Make sure the right number of energies have been given
     # Turn the energies in energy ranges
     curr_E_min = E_min
-    energy_ranges = []
+    energy_ranges: list[ERange | KRange] = []
     for E_step, E_exposure, E_max in chunks(E_params, 3):
         energy_ranges.append(ERange(curr_E_min, E_max, E_step, exposure=E_exposure))
         curr_E_min = E_max
@@ -136,10 +137,10 @@ def xafs_scan(
         energy_ranges.append(
             KRange(
                 k_min=energy_to_wavenumber(curr_E_min),
-                k_max=k_max,
-                k_step=k_step,
-                k_weight=k_weight,
-                exposure=k_exposure,
+                k_max=cast(float, k_max),
+                k_step=cast(float, k_step),
+                k_weight=cast(float, k_weight),
+                exposure=cast(float, k_exposure),
             )
         )
     # Convert energy ranges to energy list and exposure list

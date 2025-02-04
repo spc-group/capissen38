@@ -15,6 +15,7 @@ from ophyd_async.core import (
     StrictEnum,
     SubsetEnum,
     soft_signal_rw,
+    ConfigSignal
 )
 from ophyd_async.epics.core import epics_signal_r, epics_signal_rw
 
@@ -86,7 +87,7 @@ class PFCUFilter(Positioner):
     _ophyd_labels_ = {"filters"}
 
     def __init__(self, prefix: str, *, name: str = ""):
-        with self.add_children_as_readables("config"):
+        with self.add_children_as_readables(ConfigSignal):
             self.material = epics_signal_rw(Material, f"{prefix}_mat")
             self.thick = epics_signal_rw(float, f"{prefix}_thick")
             self.thick_unit = epics_signal_rw(str, f"{prefix}_thick.EGU")

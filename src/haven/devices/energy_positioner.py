@@ -3,6 +3,7 @@ import logging
 from ophyd_async.core import (
     CALCULATE_TIMEOUT,
     AsyncStatus,
+    WatchableAsyncStatus,
     CalculatableTimeout,
     Signal,
     StandardReadableFormat,
@@ -117,7 +118,7 @@ class EnergyPositioner(Positioner):
 
     @AsyncStatus.wrap
     async def set(
-        self, value: float, wait=True, timeout: CalculatableTimeout = CALCULATE_TIMEOUT
+        self, value: float, wait: bool = True, timeout: CalculatableTimeout = CALCULATE_TIMEOUT
     ):
 
         # Turn off the mono-ID tracking in the EPICS IOC since it

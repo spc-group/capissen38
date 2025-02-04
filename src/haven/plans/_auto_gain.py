@@ -29,8 +29,8 @@ class GainRecommender:
     target_volts: float
     gain_min: int = 0
     gain_max: int = 27
-    last_point: np.ndarray = None
-    dfs: list = None
+    last_point: np.ndarray | None = None
+    dfs: list[pd.DataFrame] | None = None
     big_step: int = 3
 
     def __init__(
@@ -117,7 +117,7 @@ def auto_gain(
     volts_max: float = 4.5,
     prefer: str = "middle",
     max_count: int = 28,
-    queue: Queue = None,
+    queue: Queue | None = None,
 ):
     """An adaptive Bluesky plan for optimizing ion chamber
     pre-amp gains.

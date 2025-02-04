@@ -1,6 +1,6 @@
 import uuid
-from collections import OrderedDict, abc
-from typing import Mapping, Sequence, Union
+from collections import OrderedDict
+from collections.abc import Sequence, Mapping, Iterable
 
 import numpy as np
 from bluesky import plan_patterns
@@ -21,7 +21,7 @@ from bluesky.utils import Msg, single_gen
 from ophyd import Device
 from ophyd.flyers import FlyerInterface
 from ophyd.status import StatusBase
-from ophyd_async.core import TriggerInfo
+from ophyd_async.core import TriggerInfo, DetectorTrigger
 from ophyd_async.epics.motor import FlyMotorInfo
 
 __all__ = ["fly_scan", "grid_fly_scan"]
@@ -80,7 +80,7 @@ def reset_flyers_wrapper(plan, devices=None):
     return (yield from finalize_wrapper(plan_mutator(plan, insert_reads), reset()))
 
 
-def fly_line_scan(detectors: list, *args, num, dwell_time):
+def fly_line_scan(detectors: Sequence, *args, num, dwell_time):
     """A plan stub for fly-scanning a single trajectory.
 
     Parameters
@@ -119,7 +119,7 @@ def fly_line_scan(detectors: list, *args, num, dwell_time):
         yield from bps.prepare(obj, position_info, wait=False, group=prepare_group)
     # Set up detectors
     trigger_info = TriggerInfo(
-        number_of_triggers=num, livetime=dwell_time, deadtime=0, trigger="internal"
+        number_of_triggers=num, livetime=dwell_time, deadtime=0, trigger=DetectorTrigger.INTERNAL,
     )
     for obj in detectors:
         yield from bps.prepare(obj, trigger_info, wait=False, group=prepare_group)
@@ -230,7 +230,7 @@ def fly_scan(
 def grid_fly_scan(
     detectors: Sequence[FlyerInterface],
     *args,
-    snake_axes: Union[bool, Sequence[Device]] = False,
+    snake_axes: bool | Sequence[Device] = False,
     md: Mapping = {},
 ):
     """Scan over a mesh with one of the axes collecting without stopping.
@@ -273,7 +273,7 @@ def grid_fly_scan(
     num_steppers = len(step_chunks)
     motors = [m[0] for m in step_chunks]
     all_motors = [*motors, flyer]
-    if isinstance(snake_axes, abc.Iterable) and not isinstance(snake_axes, str):
+    if isinstance(snake_axes, Iterable) and not isinstance(snake_axes, str):
         snake_steppers = snake_axes.copy()
         try:
             snake_steppers.remove(flyer)
@@ -285,7 +285,7 @@ def grid_fly_scan(
         snaking = [
             (motor in snake_steppers) for motor, start, stop, num, snake in step_chunks
         ]
-        snaking = (False, *snaking[1:], snake_flyer)
+        snaking = [False, *snaking[1:], snake_flyer]
     else:
         snake_steppers = snake_axes
         snake_flyer = snake_axes
