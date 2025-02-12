@@ -147,7 +147,16 @@
         <string>haven://${AD}.roi${R}.min_xyz.min_y</string>
        </property>
        <property name="orientation" stdset="0">
-        <enum>Qt::Vertical</enum>
+        <number>2</number>
+       </property>
+       <property name="userMaximum" stdset="0">
+        <double>3000.000000000000000</double>
+       </property>
+       <property name="userMinimum" stdset="0">
+        <double>0.000000000000000</double>
+       </property>
+       <property name="userDefinedLimits" stdset="0">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -173,6 +182,15 @@
          </property>
          <property name="step_size" stdset="0">
           <number>0</number>
+         </property>
+         <property name="userMaximum" stdset="0">
+          <double>3000.000000000000000</double>
+         </property>
+         <property name="userMinimum" stdset="0">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="userDefinedLimits" stdset="0">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -204,7 +222,16 @@
         <string>haven://${AD}.roi${R}.size.y</string>
        </property>
        <property name="orientation" stdset="0">
-        <enum>Qt::Vertical</enum>
+        <number>2</number>
+       </property>
+       <property name="userMaximum" stdset="0">
+        <double>3000.000000000000000</double>
+       </property>
+       <property name="userMinimum" stdset="0">
+        <double>0.000000000000000</double>
+       </property>
+       <property name="userDefinedLimits" stdset="0">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -227,6 +254,15 @@
          </property>
          <property name="channel" stdset="0">
           <string>haven://${AD}.roi${R}.size.x</string>
+         </property>
+         <property name="userMaximum" stdset="0">
+          <double>3000.000000000000000</double>
+         </property>
+         <property name="userMinimum" stdset="0">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="userDefinedLimits" stdset="0">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -251,11 +287,6 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PyDMLabel</class>
-   <extends>QLabel</extends>
-   <header>pydm.widgets.label</header>
-  </customwidget>
-  <customwidget>
    <class>PyDMCheckbox</class>
    <extends>QCheckBox</extends>
    <header>pydm.widgets.checkbox</header>
@@ -263,7 +294,13 @@
   <customwidget>
    <class>PyDMSlider</class>
    <extends>QFrame</extends>
-   <header>pydm.widgets.slider</header>
+   <header location="global">pydm.widgets.slider</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PyDMLabel</class>
+   <extends>QLabel</extends>
+   <header>pydm.widgets.label</header>
   </customwidget>
  </customwidgets>
  <resources/>

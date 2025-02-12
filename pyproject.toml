@@ -16,7 +16,8 @@ classifiers = [
     "Topic :: System :: Hardware",
 ]
 keywords = ["synchrotron", "xray", "bluesky"]
-dependencies = ["aioca", "aiokafka", "bluesky", "ophyd", "ophyd-async>=0.9.0a1", "apsbss", "xraydb",
+dependencies = ["aioca", "aiokafka", "bluesky", "ophyd",
+"ophyd-async>=0.9.0a2", "apsbss", "xraydb",
 	        "mergedeep", "xrayutilities", "bluesky-queueserver-api", "tomlkit",
 		"apstools", "ophyd-registry", "caproto", "pcdsdevices",
 		"bluesky-adaptive", "tiled[client]", "guarneri>=0.2.0"]

@@ -20,7 +20,7 @@ class AravisDetector(HavenDetector, DetectorBase):
             path_provider = default_path_provider()
         super().__init__(*args, prefix=prefix, path_provider=path_provider, **kwargs)
         # Replace a signal that has different enum options
-        self.drv.trigger_source = epics_signal_rw_rbv(
+        self.driver.trigger_source = epics_signal_rw_rbv(
             AravisTriggerSource,  # type: ignore
             f"{prefix}cam1:TriggerSource",
         )

@@ -103,17 +103,94 @@
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
             <layout class="QGridLayout" name="gridLayout">
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_8">
+             <item row="1" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <widget class="PyDMLineEdit" name="ExposureLineEdit">
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="channel" stdset="0">
+                  <string>haven://${AD}.drv.acquire_time</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>s</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label">
                <property name="text">
-                <string>Shape:</string>
+                <string>Gain:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
-             <item row="4" column="1">
+             <item row="3" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="PyDMLineEdit" name="GainLineEdit">
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="channel" stdset="0">
+                  <string>haven://${AD}.drv.gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_11">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="PyDMLabel" name="PyDMLabel_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string/>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="channel" stdset="0">
+                <string>haven://${AD}.drv.DetectorState_RBV</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <property name="spacing">
                 <number>0</number>
@@ -130,7 +207,7 @@
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
                  <property name="channel" stdset="0">
-                  <string>haven://${AD}.cam.array_size.array_size_y</string>
+                  <string>haven://${AD}.hdf.array_size_y</string>
                  </property>
                 </widget>
                </item>
@@ -153,7 +230,7 @@
                   <string>1224</string>
                  </property>
                  <property name="channel" stdset="0">
-                  <string>haven://${AD}.cam.array_size.array_size_x</string>
+                  <string>haven://${AD}.hdf.array_size_x</string>
                  </property>
                 </widget>
                </item>
@@ -172,7 +249,60 @@
                </item>
               </layout>
              </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Shape:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_9">
+               <item>
+                <widget class="PyDMPushButton" name="ExposurePushButton">
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="text">
+                  <string>Auto</string>
+                 </property>
+                 <property name="channel" stdset="0">
+                  <string>haven://${AD}.drv.acquire_time_auto</string>
+                 </property>
+                 <property name="pressValue" stdset="0">
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="ExposureCheckBox">
+                 <property name="text">
+                  <string>Continuous</string>
+                 </property>
+                 <property name="channel" stdset="0">
+                  <string>haven://${AD}.drv.acquire_time_auto</string>
+                 </property>
+                 <property name="pressValue" stdset="0">
+                  <string>2</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
              <item row="0" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>State:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
               <widget class="QLabel" name="label_2">
                <property name="text">
                 <string>Exposure:</string>
@@ -182,48 +312,20 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label">
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>Gain:</string>
+                <string/>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
+             <item row="4" column="1">
               <layout class="QHBoxLayout" name="horizontalLayout_6">
                <item>
-                <widget class="PyDMSlider" name="PyDMSlider_2">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="rules" stdset="0">
-                  <string>[]</string>
-                 </property>
-                 <property name="channel" stdset="0">
-                  <string>haven://${AD}.cam.gain</string>
-                 </property>
-                 <property name="userDefinedLimits" stdset="0">
-                  <bool>true</bool>
-                 </property>
-                 <property name="userMinimum" stdset="0">
-                  <double>0.000000000000000</double>
-                 </property>
-                 <property name="userMaximum" stdset="0">
-                  <double>20.000000000000000</double>
-                 </property>
-                 <property name="num_steps" stdset="0">
-                  <number>101</number>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="PyDMPushButton" name="PyDMPushButton_3">
+                <widget class="PyDMPushButton" name="GainPushButton">
                  <property name="toolTip">
                   <string/>
                  </property>
@@ -231,55 +333,23 @@
                   <string>Auto</string>
                  </property>
                  <property name="channel" stdset="0">
-                  <string>haven://${AD}.cam.gain_auto</string>
+                  <string>haven://${AD}.drv.gain_auto</string>
                  </property>
                  <property name="pressValue" stdset="0">
                   <string>1</string>
                  </property>
                 </widget>
                </item>
-              </layout>
-             </item>
-             <item row="0" column="1">
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
                <item>
-                <widget class="PyDMSlider" name="PyDMSlider">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="rules" stdset="0">
-                  <string>[]</string>
-                 </property>
-                 <property name="channel" stdset="0">
-                  <string>haven://${AD}.cam.acquire_time</string>
-                 </property>
-                 <property name="userDefinedLimits" stdset="0">
-                  <bool>true</bool>
-                 </property>
-                 <property name="userMinimum" stdset="0">
-                  <double>0.000000000000000</double>
-                 </property>
-                 <property name="userMaximum" stdset="0">
-                  <double>0.200000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="PyDMPushButton" name="PyDMPushButton_4">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
+                <widget class="QCheckBox" name="GainCheckBox">
                  <property name="text">
-                  <string>Auto</string>
+                  <string>Continuous</string>
                  </property>
                  <property name="channel" stdset="0">
-                  <string>haven://${AD}.cam.acquire_time_auto</string>
+                  <string>haven://${AD}.drv.gain_auto</string>
                  </property>
                  <property name="pressValue" stdset="0">
-                  <string>1</string>
+                  <string>2</string>
                  </property>
                 </widget>
                </item>
@@ -307,7 +377,7 @@
                 <bool>false</bool>
                </property>
                <property name="channel" stdset="0">
-                <string>haven://${AD}.cam.acquire</string>
+                <string>haven://${AD}.drv.acquire</string>
                </property>
                <property name="passwordProtected" stdset="0">
                 <bool>false</bool>
@@ -350,7 +420,7 @@
                 <string>[{&quot;name&quot;: &quot;enable_acquire_buttons&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;&quot;, &quot;expression&quot;: &quot;ch[0] == 1&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${PREFIX}cam1:Acquire&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: false}]}]</string>
                </property>
                <property name="channel" stdset="0">
-                <string>haven://${AD}.cam.acquire</string>
+                <string>haven://${AD}.drv.acquire</string>
                </property>
                <property name="pressValue" stdset="0">
                 <string>0</string>
@@ -474,141 +544,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox">
-          <property name="title">
-           <string>ROIs</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
-            <widget class="PyDMTabWidget" name="PyDMTabWidget">
-             <property name="toolTip">
-              <string/>
-             </property>
-             <property name="whatsThis">
-              <string/>
-             </property>
-             <property name="tabPosition">
-              <enum>QTabWidget::South</enum>
-             </property>
-             <property name="tabShape">
-              <enum>QTabWidget::Rounded</enum>
-             </property>
-             <property name="currentIndex">
-              <number>3</number>
-             </property>
-             <property name="tabBarAutoHide">
-              <bool>false</bool>
-             </property>
-             <property name="currentTabAlarmChannel" stdset="0">
-              <cstring></cstring>
-             </property>
-             <property name="alarmChannels" stdset="0">
-              <stringlist>
-               <string></string>
-               <string></string>
-               <string></string>
-               <string></string>
-               <string></string>
-              </stringlist>
-             </property>
-             <widget class="QWidget" name="tab">
-              <attribute name="title">
-               <string>Full</string>
-              </attribute>
-              <layout class="QHBoxLayout" name="horizontalLayout_11">
-               <item>
-                <widget class="PyDMEmbeddedDisplay" name="PyDMEmbeddedDisplay_5">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="macros" stdset="0">
-                  <string>AD=${AD},R=4</string>
-                 </property>
-                 <property name="filename" stdset="0">
-                  <string>area_detector_roi.ui</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="tab_2">
-              <attribute name="title">
-               <string>1</string>
-              </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="PyDMEmbeddedDisplay" name="PyDMEmbeddedDisplay">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="macros" stdset="0">
-                  <string>AD=${AD},R=1</string>
-                 </property>
-                 <property name="filename" stdset="0">
-                  <string>area_detector_roi.ui</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="tab_5">
-              <attribute name="title">
-               <string>2</string>
-              </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <widget class="PyDMEmbeddedDisplay" name="PyDMEmbeddedDisplay_2">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="macros" stdset="0">
-                  <string>AD=${AD},R=2</string>
-                 </property>
-                 <property name="filename" stdset="0">
-                  <string>area_detector_roi.ui</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="tab_4">
-              <attribute name="title">
-               <string>3</string>
-              </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_10">
-               <item>
-                <widget class="PyDMEmbeddedDisplay" name="PyDMEmbeddedDisplay_3">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="macros" stdset="0">
-                  <string>AD=${AD},R=3</string>
-                 </property>
-                 <property name="filename" stdset="0">
-                  <string>area_detector_roi.ui</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -652,16 +587,15 @@
    <header>pydm.widgets.pushbutton</header>
   </customwidget>
   <customwidget>
-   <class>PyDMSlider</class>
-   <extends>QFrame</extends>
-   <header>pydm.widgets.slider</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>ImageView</class>
    <extends>QWidget</extends>
    <header>pyqtgraph</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PyDMLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>pydm.widgets.line_edit</header>
   </customwidget>
  </customwidgets>
  <resources/>

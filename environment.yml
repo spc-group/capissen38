@@ -60,7 +60,7 @@ dependencies:
     # - bluesky >=1.13.1
     - git+https://github.com/bluesky/bluesky.git@v1.13.1rc1  # Replace with pypi version once released
     - ophyd >=1.6.3
-    - ophyd-async == 0.9.0a1
+    - ophyd-async >=0.9.0a2
     - apstools == 1.6.20  # Leave at 1.6.20 until this is fixed: https://github.com/BCDA-APS/apstools/issues/1022
     - pcdsdevices  # For extra signal types
     - pydm >=1.18.0

@@ -4,6 +4,7 @@ import numpy as np
 import pydm
 import pyqtgraph
 import pytest
+from PyQt5.QtCore import Qt
 
 from firefly.area_detector_viewer import AreaDetectorViewerDisplay
 
@@ -46,6 +47,66 @@ def test_caqtdm_window(display, sim_camera):
     display._open_caqtdm_subprocess.assert_called_once_with(
         f"start_{sim_camera.prefix}_caqtdm"
     )
+
+
+def test_exposure_checkbox_push_button(display, qtbot):
+    """
+    Test the interaction between the Exposure checkbox and push button.
+    """
+    exposure_checkbox = display.exposure_checkbox
+    exposure_push_button = display.exposure_push_button
+
+    # Initially both should be enabled
+    assert exposure_checkbox.isEnabled()
+    assert exposure_push_button.isEnabled()
+
+    # Simulate checking the checkbox
+    exposure_checkbox.setChecked(True)
+    assert (
+        not exposure_push_button.isEnabled()
+    ), "Exposure PushButton should be disabled when Checkbox is checked."
+
+    # Simulate unchecking the checkbox
+    exposure_checkbox.setChecked(False)
+    assert (
+        exposure_push_button.isEnabled()
+    ), "Exposure PushButton should be enabled when Checkbox is unchecked."
+
+    # Simulate clicking the push button
+    qtbot.mouseClick(exposure_push_button, Qt.LeftButton)
+    assert (
+        not exposure_checkbox.isChecked()
+    ), "Exposure Checkbox should be unchecked when PushButton is clicked."
+
+
+def test_gain_checkbox_push_button(display, qtbot):
+    """
+    Test the interaction between the Gain checkbox and push button.
+    """
+    gain_checkbox = display.gain_checkbox
+    gain_push_button = display.gain_push_button
+
+    # Initially both should be enabled
+    assert gain_checkbox.isEnabled()
+    assert gain_push_button.isEnabled()
+
+    # Simulate checking the checkbox
+    gain_checkbox.setChecked(True)
+    assert (
+        not gain_push_button.isEnabled()
+    ), "Gain PushButton should be disabled when Checkbox is checked."
+
+    # Simulate unchecking the checkbox
+    gain_checkbox.setChecked(False)
+    assert (
+        gain_push_button.isEnabled()
+    ), "Gain PushButton should be enabled when Checkbox is unchecked."
+
+    # Simulate clicking the push button
+    qtbot.mouseClick(gain_push_button, Qt.LeftButton)
+    assert (
+        not gain_checkbox.isChecked()
+    ), "Gain Checkbox should be unchecked when PushButton is clicked."
 
 
 # -----------------------------------------------------------------------------

@@ -11,12 +11,12 @@ from ophyd_async.core import (
     DeviceVector,
     PathProvider,
     SignalR,
-    StandardDetector,
     StrictEnum,
     TriggerInfo,
     soft_signal_r_and_setter,
 )
 from ophyd_async.epics import adcore
+from ophyd_async.epics.adcore import ADBaseController, AreaDetector
 from ophyd_async.epics.adcore._utils import (
     ADBaseDataType,
     NDAttributeDataType,
@@ -49,9 +49,10 @@ class XspressDriverIO(adcore.ADBaseIO):
         super().__init__(prefix=prefix, name=name)
 
 
-class XspressController(DetectorController):
+class XspressController(ADBaseController):
     def __init__(self, driver: adcore.ADBaseIO) -> None:
-        self._drv = driver
+        super().__init__(driver)
+        self.driver = driver
 
     def get_deadtime(self, exposure: float) -> float:
         # Arbitrary value. To-do: fill this in when we know what to
@@ -59,35 +60,23 @@ class XspressController(DetectorController):
         return 0.001
 
     async def setup_ndattributes(self, device_name: str):
-        num_elements = await self._drv.number_of_elements.get_value()
+        num_elements = await self.driver.number_of_elements.get_value()
         params = ndattribute_params(
             device_name=device_name, elements=range(num_elements)
         )
         xml = ndattribute_xml(params)
-        await self._drv.nd_attributes_file.set(xml)
+        await self.driver.nd_attributes_file.set(xml)
 
     @AsyncStatus.wrap
     async def prepare(self, trigger_info: TriggerInfo):
         await asyncio.gather(
-            self._drv.num_images.set(trigger_info.total_number_of_triggers),
-            self._drv.image_mode.set(adcore.ImageMode.MULTIPLE),
-            self._drv.trigger_mode.set(XspressTriggerMode.INTERNAL),
+            self.driver.num_images.set(trigger_info.total_number_of_triggers),
+            self.driver.image_mode.set(adcore.ImageMode.MULTIPLE),
+            self.driver.trigger_mode.set(XspressTriggerMode.INTERNAL),
             # Hardware deadtime correciton is not reliable
             # https://github.com/epics-modules/xspress3/issues/57
-            self._drv.deadtime_correction.set(False),
+            self.driver.deadtime_correction.set(False),
         )
-
-    async def wait_for_idle(self):
-        if self._arm_status:
-            await self._arm_status
-
-    async def arm(self):
-        self._arm_status = await adcore.start_acquiring_driver_and_ensure_status(
-            self._drv
-        )
-
-    async def disarm(self):
-        await adcore.stop_busy_record(self._drv.acquire, False, timeout=1)
 
 
 class XspressDatasetDescriber(adcore.ADBaseDatasetDescriber):
@@ -135,7 +124,7 @@ class XspressElement(Device):
         super().__init__(name=name)
 
 
-class Xspress3Detector(HavenDetector, StandardDetector):
+class Xspress3Detector(HavenDetector, AreaDetector):
     """A detector controlled by Xspress3 electronics.
 
     The elements of the detector are represented on the *mcas*
@@ -172,7 +161,7 @@ class Xspress3Detector(HavenDetector, StandardDetector):
         elements: int | Sequence[int] = 1,
         ev_per_bin: float = 10.0,
         drv_suffix="det1:",
-        hdf_suffix="HDF1:",
+        fileio_suffix="HDF1:",
         name: str = "",
         config_sigs: Sequence[SignalR] = (),
     ):
@@ -185,8 +174,10 @@ class Xspress3Detector(HavenDetector, StandardDetector):
             {idx: XspressElement(prefix, element_index=idx) for idx in elements}
         )
         # Area detector IO devices
-        self.drv = XspressDriverIO(prefix + drv_suffix)
-        self.hdf = adcore.NDFileHDFIO(prefix + hdf_suffix)
+        self.driver = XspressDriverIO(prefix + drv_suffix)
+        self.fileio = adcore.NDFileHDFIO(prefix + fileio_suffix)
+
+        self.plugins = {"hdf": self.fileio}
 
         if path_provider is None:
             path_provider = default_path_provider()
@@ -194,17 +185,19 @@ class Xspress3Detector(HavenDetector, StandardDetector):
         self.ev_per_bin, _ = soft_signal_r_and_setter(float, initial_value=ev_per_bin)
 
         super().__init__(
-            XspressController(self.drv),
-            adcore.ADHDFWriter(
-                self.hdf,
-                path_provider,
-                lambda: self.name,
-                XspressDatasetDescriber(self.drv),
-                self.drv,  # <- for DT ndattributes
+            controller=XspressController(self.driver),
+            writer=adcore.ADHDFWriter(
+                fileio=self.fileio,
+                path_provider=path_provider,
+                name_provider=lambda: self.name,
+                dataset_describer=XspressDatasetDescriber(self.driver),
+                # driver=self.driver,  # <- for DT ndattributes
+                plugins=self.plugins,
             ),
+            plugins=self.plugins,
             config_sigs=(
-                self.drv.acquire_period,
-                self.drv.acquire_time,
+                self.driver.acquire_period,
+                self.driver.acquire_time,
                 self.ev_per_bin,
                 *config_sigs,
             ),
@@ -214,11 +207,11 @@ class Xspress3Detector(HavenDetector, StandardDetector):
     @AsyncStatus.wrap
     async def stage(self) -> None:
         self._old_xml_file, *_ = await asyncio.gather(
-            self.drv.nd_attributes_file.get_value(),
+            self.driver.nd_attributes_file.get_value(),
             super().stage(),
             self._controller.setup_ndattributes(device_name=self.name),
-            self.drv.erase_on_start.set(False),
-            self.drv.erase.trigger(),
+            self.driver.erase_on_start.set(False),
+            self.driver.erase.trigger(),
         )
 
     @AsyncStatus.wrap
@@ -226,12 +219,12 @@ class Xspress3Detector(HavenDetector, StandardDetector):
         await super().unstage()
         if self._old_xml_file is not None:
             # Restore the original XML attributes file
-            await self.drv.nd_attributes_file.set(self._old_xml_file)
+            await self.driver.nd_attributes_file.set(self._old_xml_file)
             self._old_xml_file = None
 
     @property
     def default_time_signal(self):
-        return self.drv.acquire_time
+        return self.driver.acquire_time
 
 
 def ndattribute_xml(params):
