@@ -115,7 +115,7 @@ def save_motor_position(*motors, name: str, md: Mapping = {}):
 
     """
     # Resolve device names or labels
-    motors = beamline.devices.findall(motors)
+    motors = [beamline.devices[motor] for motor in motors]
     # Create the new run object
     _md = {
         "position_name": name,

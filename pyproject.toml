@@ -19,7 +19,7 @@ keywords = ["synchrotron", "xray", "bluesky"]
 dependencies = ["aioca", "aiokafka", "bluesky", "ophyd",
 "ophyd-async>=0.9.0a2", "apsbss", "xraydb",
 	        "mergedeep", "xrayutilities", "bluesky-queueserver-api", "tomlkit",
-		"apstools", "ophyd-registry", "caproto", "pcdsdevices",
+		"apstools", "ophyd-registry>=2.0.0rc1", "caproto", "pcdsdevices",
 		"bluesky-adaptive", "tiled[client]", "guarneri>=0.2.0"]
 
 [project.optional-dependencies]

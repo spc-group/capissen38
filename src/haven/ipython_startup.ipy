@@ -55,7 +55,7 @@ print(f"Connected to {num_devices} devices in {time.monotonic() - t0:.2f} second
 # Save references to all the devices in the global namespace
 devices = haven.beamline.devices
 ion_chambers = devices.findall("ion_chambers", allow_none=True)
-for cpt in devices._objects_by_name.values():
+for cpt in devices.all_devices:
     # Replace spaces and other illegal characters in variable name
     name = haven.sanitize_name(cpt.name)
     # Add the device as a variable in module's globals

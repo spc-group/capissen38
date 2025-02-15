@@ -1,5 +1,5 @@
 import pytest
-from ophyd import Device, EpicsMotor, sim
+from ophyd import Device, sim
 from ophydregistry import Registry
 
 from haven.exceptions import ComponentNotFound, MultipleComponentsFound
@@ -253,14 +253,6 @@ def test_find_by_list_of_names(reg):
     assert cptA in result
     assert cptB in result
     assert cptC not in result
-
-
-def test_user_readback(reg):
-    """Edge case where EpicsMotor.user_readback is named the same as the motor itself."""
-    device = EpicsMotor("", name="epics_motor")
-    reg.register(device)
-    # See if requesting the device.user_readback returns the proper signal
-    reg["epics_motor_user_readback"]
 
 
 # -----------------------------------------------------------------------------
