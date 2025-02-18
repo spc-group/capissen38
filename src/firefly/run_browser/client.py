@@ -284,7 +284,7 @@ class DatabaseWorker:
         arrays = OrderedDict()
         for run in self.selected_runs:
             # Get data from the database
-            arr = await run.dataset(dataset_name, stream=stream)
+            arr = await run.external_dataset(dataset_name, stream=stream)
             arrays[run.uid] = arr
         return arrays
 

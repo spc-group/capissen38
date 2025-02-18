@@ -162,6 +162,17 @@ def test_hinted_signal_options(view):
     ), f"energy_energy signal should be in x-signal combobox."
 
 
+def test_symbol_options(view):
+    combobox = view.ui.symbol_combobox
+    assert combobox.count() == 19
+
+
+def test_change_symbol(view):
+    """For now just make sure it doesn't raise exceptions."""
+    view.plot(dataframes)
+    view.change_symbol()
+
+
 def test_plotting_data(view):
     # Check prepared data
     xdata, ydata = view.prepare_plotting_data(dataframe)
@@ -176,6 +187,18 @@ def test_update_plot(view):
     view.independent_hints = ["energy_energy"]
     view.dependent_hints = ["I0-net_current"]
     view.data_keys = data_keys
+    # Update the plots
+    view.plot(dataframes)
+    # Check the data were plotted
+    plot_item = view.ui.plot_widget.getPlotItem()
+    assert len(plot_item.dataItems) == 1
+
+
+def test_update_plot_mean(view):
+    view.independent_hints = ["energy_energy"]
+    view.dependent_hints = ["I0-net_current"]
+    view.data_keys = data_keys
+    view.ui.aggregator_combobox.setCurrentText("StDev")
     # Update the plots
     view.plot(dataframes)
     # Check the data were plotted

@@ -161,6 +161,21 @@ class CatalogScan:
     async def data(self, *, signals=None, stream: str = "primary"):
         return await self._read_data(signals, f"{stream}/internal/events/")
 
+    async def external_dataset(self, name: str, stream: str = "primary") -> np.ndarray:
+        """Load an external N-dimensional dataset from the database.
+
+        Parameters
+        ==========
+        The key of the external dataset.
+
+        Returns
+        =======
+        arr
+          The loaded dataset.
+
+        """
+        return await self._read_data(None, f"{stream}/external/{name}")
+
     @property
     def loop(self):
         return asyncio.get_running_loop()

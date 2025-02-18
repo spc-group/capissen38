@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>892</width>
-    <height>666</height>
+    <width>779</width>
+    <height>280</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -155,7 +155,7 @@
      <item>
       <widget class="QComboBox" name="aggregator_combobox">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -170,17 +170,17 @@
        </item>
        <item>
         <property name="text">
-         <string>Sum</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Avg</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>Mean</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Median</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>StDev</string>
         </property>
        </item>
       </widget>
@@ -215,6 +215,27 @@
         <string>Center Cursor</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="symbol_checkbox">
+         <property name="text">
+          <string>Markers</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="symbol_combobox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="Line" name="line_4">
@@ -276,6 +297,22 @@
     <hint type="destinationlabel">
      <x>406</x>
      <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>symbol_checkbox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>symbol_combobox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>643</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>397</x>
+     <y>643</y>
     </hint>
    </hints>
   </connection>

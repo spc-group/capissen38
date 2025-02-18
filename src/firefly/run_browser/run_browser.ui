@@ -522,6 +522,9 @@
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
+                        <property name="displayFormat">
+                         <string>yyyy-MM-dd HH.mm</string>
+                        </property>
                         <property name="calendarPopup">
                          <bool>true</bool>
                         </property>
@@ -743,26 +746,14 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="xrf_tab">
+         <widget class="FramesetView" name="frameset_tab">
           <property name="enabled">
            <bool>true</bool>
           </property>
           <attribute name="title">
-           <string>Spectra</string>
+           <string>Frames</string>
           </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_16">
-           <item>
-            <widget class="XRFView" name="xrf_view" native="true"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="ad_tab">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <attribute name="title">
-           <string>Images</string>
-          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_16"/>
          </widget>
         </widget>
        </item>
@@ -777,12 +768,6 @@
    <class>FiltersWidget</class>
    <extends>QWidget</extends>
    <header>firefly.run_browser.widgets</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>XRFView</class>
-   <extends>QWidget</extends>
-   <header>firefly.run_browser.xrf_view</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -807,6 +792,12 @@
    <class>GridplotView</class>
    <extends>QWidget</extends>
    <header>firefly.run_browser.gridplot_view</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FramesetView</class>
+   <extends>QWidget</extends>
+   <header>firefly.run_browser.frameset_view</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

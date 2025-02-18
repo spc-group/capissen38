@@ -110,7 +110,7 @@ class FireflyDisplay(Display):
     def update_queue_status(self, status):
         pass
 
-    def show_message(self, message, timeout=0):
+    def show_message(self, message: str, timeout: int = 0):
         """Display a message in the status bar."""
         self.status_message_changed.emit(str(message), timeout)
 

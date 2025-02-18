@@ -10,6 +10,7 @@ import pytest
 from ophyd import DynamicDeviceComponent as DCpt
 from ophyd import Kind
 from ophyd.sim import instantiate_fake_device, make_fake_device
+from tiled.adapters.array import ArrayAdapter
 from tiled.adapters.mapping import MapAdapter
 from tiled.adapters.table import TableAdapter
 from tiled.client import Context, from_context
@@ -342,6 +343,13 @@ bluesky_mapping = {
                     "internal": MapAdapter(
                         {
                             "events": TableAdapter.from_pandas(run1),
+                        }
+                    ),
+                    "external": MapAdapter(
+                        {
+                            "ge_8element": ArrayAdapter.from_array(
+                                np.ones(shape=(100, 512, 1024))
+                            ),
                         }
                     ),
                 },
