@@ -329,7 +329,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <widget class="QLabel" name="label_9">
          <property name="text">
           <string>Notes:</string>
@@ -339,37 +339,20 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="4">
-        <widget class="QLineEdit" name="lineEdit_purpose">
-         <property name="toolTip">
-          <string>Type the experimental purpose note for this scan</string>
+       <item row="2" column="5">
+        <spacer name="buttons_spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
-         <property name="placeholderText">
-          <string>Purpose</string>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
          </property>
-        </widget>
+        </spacer>
        </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit_sample">
-         <property name="toolTip">
-          <string>Type this sample's name</string>
-         </property>
-         <property name="placeholderText">
-          <string>Sample name</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Experiment purpose:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
+       <item row="2" column="3">
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <widget class="QLabel" name="label_10">
@@ -399,20 +382,44 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="5">
-        <spacer name="buttons_spacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+       <item row="0" column="6">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_11">
+           <property name="toolTip">
+            <string>Do this scan by multiple times</string>
+           </property>
+           <property name="text">
+            <string>Num. of scans:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBox_repeat_scan_num">
+           <property name="toolTip">
+            <string>Do this scan by multiple times</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>999</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
-       <item row="1" column="4">
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Experiment purpose:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -570,14 +577,17 @@
          </item>
         </layout>
        </item>
-       <item row="0" column="2">
-        <widget class="QCheckBox" name="checkBox_is_standard">
-         <property name="text">
-          <string>Is standard</string>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="lineEdit_sample">
+         <property name="toolTip">
+          <string>Type this sample's name</string>
+         </property>
+         <property name="placeholderText">
+          <string>Sample name</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="1">
         <widget class="QTextEdit" name="textEdit_notes">
          <property name="enabled">
           <bool>true</bool>
@@ -608,37 +618,91 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="6">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QLabel" name="label_11">
-           <property name="toolTip">
-            <string>Do this scan by multiple times</string>
-           </property>
-           <property name="text">
-            <string>Num. of scans:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="spinBox_repeat_scan_num">
-           <property name="toolTip">
-            <string>Do this scan by multiple times</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>999</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="1" column="6">
+       <item row="2" column="6">
         <widget class="QueueButton" name="run_button">
          <property name="text">
           <string>Run</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QComboBox" name="comboBox_purpose">
+         <property name="acceptDrops">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>e.g., commissioning, Mn oxidation states..</string>
+         </property>
+         <property name="toolTipDuration">
+          <number>5</number>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="currentText">
+          <string/>
+         </property>
+         <property name="currentIndex">
+          <number>-1</number>
+         </property>
+         <property name="placeholderText">
+          <string>e.g., commissioning, alignment..</string>
+         </property>
+         <property name="duplicatesEnabled">
+          <bool>false</bool>
+         </property>
+         <property name="frame">
+          <bool>true</bool>
+         </property>
+         <item>
+          <property name="text">
+           <string>commissioning</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>alignment</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>measurement</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>others (type in)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLineEdit" name="lineEdit_formula">
+         <property name="toolTip">
+          <string>type in chemical formula, follow example formats</string>
+         </property>
+         <property name="placeholderText">
+          <string>e.g., Fe2O3, LiNi0.5Mn0.5O4, or NMC-111</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Chemical formula</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="checkBox_is_standard">
+         <property name="text">
+          <string>Is standard</string>
          </property>
         </widget>
        </item>

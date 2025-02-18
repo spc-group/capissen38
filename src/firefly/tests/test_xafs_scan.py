@@ -107,9 +107,8 @@ def test_xafs_scan_plan_queued_energies(display, qtbot):
 
     # set up meta data
     display.ui.lineEdit_sample.setText("sam")
-    display.ui.lineEdit_purpose.setText("test")
     display.ui.checkBox_is_standard.setChecked(True)
-    display.ui.lineEdit_purpose.setText("test")
+    display.ui.comboBox_purpose.setCurrentText("test")
     display.ui.textEdit_notes.setText("sam_notes")
 
     expected_item = BPlan(
@@ -210,7 +209,6 @@ def test_xafs_scan_plan_queued_energies_k_mixed(qtbot, display):
 
     # set up meta data
     display.ui.lineEdit_sample.setText("sam")
-    display.ui.lineEdit_purpose.setText("")  # invalid input should be removed from md
     display.ui.textEdit_notes.setText("sam_notes")
 
     expected_item = BPlan(

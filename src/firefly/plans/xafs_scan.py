@@ -9,7 +9,7 @@ from qtpy.QtGui import QDoubleValidator
 from xraydb.xraydb import XrayDB
 
 from firefly import display
-from firefly.plans.util import is_valid_value, time_converter
+from firefly.plans import regions_display
 from haven.energy_ranges import (
     E_step_to_k_step,
     ERange,
@@ -214,11 +214,12 @@ class XafsScanRegion(QObject):
         self.time_calculation_signal.emit()
 
 
-class XafsScanDisplay(display.FireflyDisplay):
+class XafsScanDisplay(regions_display.PlanDisplay, display.FireflyDisplay):
     min_energy = 4000
     max_energy = 33000
 
     def customize_ui(self):
+        super().customize_ui()
         # Remove the defaut XAFS layout from .ui file
         self.ui.clearLayout(self.ui.region_layout)
 
@@ -256,18 +257,12 @@ class XafsScanDisplay(display.FireflyDisplay):
         # reset button
         self.ui.reset_button.clicked.connect(self.reset_default_regions)
 
-        # Run scan button
-        self.ui.run_button.clicked.connect(self.queue_plan)
-
         # connect checkboxes with all regions' check box
         self.title_region.regions_all_checkbox.stateChanged.connect(
             self.on_regions_all_checkbox
         )
         # connect is_standard with a warning box
         self.ui.checkBox_is_standard.clicked.connect(self.on_is_standard)
-
-        # connect num. of scans with total_time
-        self.ui.spinBox_repeat_scan_num.valueChanged.connect(self.update_total_time)
 
     async def update_devices(self, registry):
         """Set available components in the device list."""
@@ -397,20 +392,7 @@ class XafsScanDisplay(display.FireflyDisplay):
         except ValueError:
             total_time_per_scan = float("nan")
 
-        # calculate time for each scan
-        hr, min, sec = time_converter(total_time_per_scan)
-        self.ui.label_hour_scan.setText(str(hr))
-        self.ui.label_min_scan.setText(str(min))
-        self.ui.label_sec_scan.setText(str(sec))
-
-        # calculate time for entire planf
-        num_scan_repeat = self.ui.spinBox_repeat_scan_num.value()
-        total_time = num_scan_repeat * total_time_per_scan
-        hr_total, min_total, sec_total = time_converter(total_time)
-
-        self.ui.label_hour_total.setText(str(hr_total))
-        self.ui.label_min_total.setText(str(min_total))
-        self.ui.label_sec_total.setText(str(sec_total))
+        self.set_time_label(total_time_per_scan)
 
     def on_is_standard(self, is_checked):
         # if is_standard checked, warn that the data will be used for public
@@ -474,16 +456,10 @@ class XafsScanDisplay(display.FireflyDisplay):
         energies, exposures = merge_ranges(*energy_ranges_all, sort=True)
         energies = list(np.round(energies, float_accuracy))
         exposures = list(np.round(exposures, float_accuracy))
-        detectors = self.ui.detectors_list.selected_detectors()
-        repeat_scan_num = int(self.ui.spinBox_repeat_scan_num.value())
-        md = {
-            "sample_name": self.ui.lineEdit_sample.text(),
-            "purpose": self.ui.lineEdit_purpose.text(),
-            "is_standard": self.ui.checkBox_is_standard.isChecked(),
-            "notes": self.ui.textEdit_notes.toPlainText(),
-        }
-        # Only include metadata that isn't an empty string
-        md = {key: val for key, val in md.items() if is_valid_value(val)}
+
+        md = self.get_meta_data()
+        md["is_standard"] = self.ui.checkBox_is_standard.isChecked()
+        detectors, repeat_scan_num = self.get_scan_parameters()
 
         # Check that an absorption edge was selected
         if self.use_edge_checkbox.isChecked():
@@ -509,7 +485,7 @@ class XafsScanDisplay(display.FireflyDisplay):
             md=md,
         )
         # Submit the item to the queueserver
-        log.info(f"Adding XAFS scan to queue.")
+        log.info("Adding XAFS scan to queue.")
         # repeat scans
         for i in range(repeat_scan_num):
             self.queue_item_submitted.emit(item)

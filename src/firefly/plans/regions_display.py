@@ -20,7 +20,89 @@ class RegionBase:
         raise NotImplementedError
 
 
-class RegionsDisplay(display.FireflyDisplay):
+class PlanDisplay(display.FireflyDisplay):
+    """Base class containing common functionality for basic plan window displays.
+    Should be subclassed to produce a usable display.
+    """
+
+    scan_time_changed = Signal(float)
+    total_time_changed = Signal(float)
+
+    def customize_ui(self):
+        self.ui.run_button.clicked.connect(self.queue_plan)
+        if hasattr(self.ui, "spinBox_repeat_scan_num"):
+            self.ui.spinBox_repeat_scan_num.valueChanged.connect(self.update_total_time)
+
+    async def _get_time(self, detector):
+        """Get the dwell time value for a given detector."""
+        time_signal = detector.default_time_signal
+        if hasattr(time_signal, "get_value"):
+            return await time_signal.get_value()
+        return time_signal.get()
+
+    @asyncSlot()
+    async def update_total_time(self):
+        """Update the total scan time and display it."""
+        # Get default detector time
+        detectors = self.ui.detectors_list.selected_detectors()
+        detectors = [self.registry[name] for name in detectors]
+        detectors = [det for det in detectors if hasattr(det, "default_time_signal")]
+
+        if len(detectors) == 0:
+            detector_time = float("nan")
+        else:
+            detector_time = max([await self._get_time(det) for det in detectors])
+
+        # Calculate time per scan
+        total_time_per_scan = self.time_per_scan(detector_time)
+        total_time_per_scan, total_time = self.set_time_label(total_time_per_scan)
+
+        # enmit signals
+        self.scan_time_changed.emit(total_time_per_scan)
+        self.total_time_changed.emit(total_time)
+
+    def set_time_label(self, total_time_per_scan):
+        # Time label for one scan
+        hrs, mins, secs = time_converter(total_time_per_scan)
+        self.ui.label_hour_scan.setText(str(hrs))
+        self.ui.label_min_scan.setText(str(mins))
+        self.ui.label_sec_scan.setText(str(secs))
+
+        # Calculate total time for the entire plan
+        num_scan_repeat = self.ui.spinBox_repeat_scan_num.value()
+        total_time = num_scan_repeat * total_time_per_scan
+        # Time label for all repeated scans
+        hrs_total, mins_total, secs_total = time_converter(total_time)
+        self.ui.label_hour_total.setText(str(hrs_total))
+        self.ui.label_min_total.setText(str(mins_total))
+        self.ui.label_sec_total.setText(str(secs_total))
+
+        return total_time_per_scan, total_time
+
+    def time_per_scan(self, detector_time):
+        """Placeholder for time calculation logic. Must be implemented in subclasses."""
+        raise NotImplementedError
+
+    def get_scan_parameters(self):
+        # Get scan parameters from widgets
+        detectors = self.ui.detectors_list.selected_detectors()
+        repeat_scan_num = int(self.ui.spinBox_repeat_scan_num.value())
+        return detectors, repeat_scan_num
+
+    def get_meta_data(self):
+        """Get metadata information."""
+        md = {
+            "sample_name": self.ui.lineEdit_sample.text(),
+            "purpose": self.ui.comboBox_purpose.currentText(),
+            "notes": self.ui.textEdit_notes.toPlainText(),
+            "sample_formula": self.ui.lineEdit_formula.text(),
+        }
+        # Only include metadata that isn't an empty string
+        md = {key: val for key, val in md.items() if is_valid_value(val)}
+        return md
+
+
+class RegionsDisplay(PlanDisplay, display.FireflyDisplay):
     """Contains variable number of plan parameter regions in a table.
 
     Should be subclassed to produce a usable display.
@@ -44,10 +126,8 @@ class RegionsDisplay(display.FireflyDisplay):
     default_num_regions = 1
     Region = RegionBase
 
-    scan_time_changed = Signal(float)
-    total_time_changed = Signal(float)
-
     def customize_ui(self):
+        super().customize_ui()
         # Remove the default layout from .ui file
         try:
             self.clearLayout(self.ui.region_template_layout)
@@ -62,7 +142,6 @@ class RegionsDisplay(display.FireflyDisplay):
         self.add_regions(self.default_num_regions)
         # Set up the mechanism for changing region number
         self.ui.num_motor_spin_box.valueChanged.connect(self.update_regions_slot)
-        self.ui.run_button.clicked.connect(self.queue_plan)
         # Color highlights for relative checkbox
         if hasattr(self, "relative_scan_checkbox"):
             self.ui.relative_scan_checkbox.stateChanged.connect(self.change_background)
@@ -154,54 +233,8 @@ class RegionsDisplay(display.FireflyDisplay):
             ]
             await asyncio.gather(*aws)
 
-    async def _get_time(self, detector):
-        """Get the dwell time value for a given detector."""
-        time_signal = detector.default_time_signal
-        if hasattr(time_signal, "get_value"):
-            return await time_signal.get_value()
-        return time_signal.get()
-
-    @asyncSlot()
-    async def update_total_time(self):
-        # get default detector time
-        detectors = self.ui.detectors_list.selected_detectors()
-        detectors = [self.registry[name] for name in detectors]
-        detectors = [det for det in detectors if hasattr(det, "default_time_signal")]
-
-        # to prevent detector list is empty
-        if len(detectors) == 0:
-            detector_time = float("nan")
-        else:
-            detector_time = max([await self._get_time(det) for det in detectors])
-        # get scan num points to calculate total time
-        total_time_per_scan = self.time_per_scan(detector_time)
-
-        # calculate time for each scan
-        hrs, mins, secs = time_converter(total_time_per_scan)
-        self.ui.label_hour_scan.setText(str(hrs))
-        self.ui.label_min_scan.setText(str(mins))
-        self.ui.label_sec_scan.setText(str(secs))
-
-        self.scan_time_changed.emit(total_time_per_scan)
-
-        # calculate time for entire plan
-        num_scan_repeat = self.ui.spinBox_repeat_scan_num.value()
-        total_time = num_scan_repeat * total_time_per_scan
-        hrs_total, mins_total, secs_total = time_converter(total_time)
-
-        self.ui.label_hour_total.setText(str(hrs_total))
-        self.ui.label_min_total.setText(str(mins_total))
-        self.ui.label_sec_total.setText(str(secs_total))
-        self.total_time_changed.emit(total_time)
-
-    def time_per_scan(self, detector_time):
-        raise NotImplementedError
-
     def get_scan_parameters(self):
-        # Get scan parameters from widgets
-        detectors = self.ui.detectors_list.selected_detectors()
-        repeat_scan_num = int(self.ui.spinBox_repeat_scan_num.value())
-
+        detectors, repeat_scan_num = super().get_scan_parameters()
         # Get paramters from each rows of line regions:
         motor_lst, start_lst, stop_lst = [], [], []
         for region_i in self.regions:
@@ -218,14 +251,3 @@ class RegionsDisplay(display.FireflyDisplay):
         ]
 
         return detectors, motor_args, repeat_scan_num
-
-    def get_meta_data(self):
-        # Get meta data info
-        md = {
-            "sample_name": self.ui.lineEdit_sample.text(),
-            "purpose": self.ui.lineEdit_purpose.text(),
-            "notes": self.ui.textEdit_notes.toPlainText(),
-        }
-        # Only include metadata that isn't an empty string
-        md = {key: val for key, val in md.items() if is_valid_value(val)}
-        return md

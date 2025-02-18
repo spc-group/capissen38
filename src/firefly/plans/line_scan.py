@@ -12,6 +12,9 @@ log = logging.getLogger()
 
 
 class LineScanRegion(regions_display.RegionBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.num_points = 2  # Default value for num_points
 
     def setup_ui(self):
         self.layout = QtWidgets.QHBoxLayout()
@@ -43,7 +46,11 @@ class LineScanRegion(regions_display.RegionBase):
         self.start_line_edit.textChanged.connect(self.update_step_size)
         self.stop_line_edit.textChanged.connect(self.update_step_size)
 
-    def update_step_size(self, num_points=None):
+    def set_num_points(self, num_points):
+        self.num_points = max(2, int(num_points))  # Ensure num_points is >= 2
+        self.update_step_size()
+
+    def update_step_size(self):
         try:
             # Get Start and Stop values
             start_text = self.start_line_edit.text().strip()
@@ -55,13 +62,10 @@ class LineScanRegion(regions_display.RegionBase):
             start = float(start_text)
             stop = float(stop_text)
 
-            # Ensure num_points is an integer
-            num_points = int(num_points) if num_points is not None else 2
-
             # Calculate step size
-            if num_points > 1:
-                step_size = (stop - start) / (num_points - 1)
-                self.step_size_line_edit.setText(f"{step_size}")
+            if self.num_points > 1:
+                step_size = (stop - start) / (self.num_points - 1)
+                self.step_size_line_edit.setText(f"{step_size:.5g}")
             else:
                 self.step_size_line_edit.setText("N/A")
         except ValueError:
@@ -83,20 +87,20 @@ class LineScanDisplay(regions_display.RegionsDisplay):
 
     def customize_ui(self):
         super().customize_ui()
-        # When selections of detectors changed update_total_time
+
+        # Connect signals for total time updates
         self.ui.scan_pts_spin_box.valueChanged.connect(self.update_total_time)
         self.ui.detectors_list.selectionModel().selectionChanged.connect(
             self.update_total_time
         )
-        self.ui.spinBox_repeat_scan_num.valueChanged.connect(self.update_total_time)
 
-        # Connect scan_pts_spin_box value change to regions
-        self.ui.scan_pts_spin_box.valueChanged.connect(self.update_regions_step_size)
+        for region in self.regions:
+            self.ui.scan_pts_spin_box.valueChanged.connect(region.set_num_points)
 
     def update_regions_step_size(self, num_points):
         """Update the step size for all regions."""
         for region in self.regions:
-            region.update_step_size(num_points)
+            region.set_num_points(num_points)
 
     def queue_plan(self, *args, **kwargs):
         """Execute this plan on the queueserver."""
